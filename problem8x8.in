@@ -1,0 +1,39 @@
+FJSSP-nfa
+8
+8
+3 4 3 3 4 3 3 4
+
+T T T T T T T T
+T F T T T T T T
+F T T T T T T T
+
+F T T T T T T T
+F T T T T T T T
+T T T T T T T T
+T T T T T T T T
+
+T F T T T T T T
+F T T T T T T T
+T T T T T T T T
+
+T T T T T T T T
+T T T T T T T T
+T T T T T T T T
+
+T T T T T T T T
+T F T T T T T T
+F T T T T T T T
+T T T T T T T T
+
+T T T T T T T T
+T F T T T T T T
+T T T T T T T T
+
+T T T T T T T T
+F T T T T T T T
+F T T T T T T T
+
+T T T T T T T T
+T T T T T T T T
+T T T T T T T T
+T F T T T T T T
