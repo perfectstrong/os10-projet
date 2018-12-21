@@ -22,10 +22,10 @@ struct parameters{
     double** t_l; //maintenance completion time windows end (lateness)
 };
 
-struct variables{
-    double** y; //completion time of of maintenance task jl
-    bool*** x; //affectation of the operation ik to machine j
-};
+//~ struct variables{
+    //~ double** y; //completion time of of maintenance task jl
+    //~ bool*** x; //affectation of the operation ik to machine j
+//~ };
 
 int read_parameters(string filename, parameters& params)
 {
@@ -107,51 +107,94 @@ int read_parameters(string filename, parameters& params)
     return 0;
 }
 
-void initialize_variables(variables& vars, parameters& params)
+void delete_parameters(parameters& params)
 {
-    vars.y = new double*[params.m];
-    for(int j=0; j<params.n; j++) {
-        vars.y[j] = new double[params.L[j]];
-        for(int l=0; l<params.L[j]; l++) {
-            vars.y[j][l] = 0;
-        }
-    }
-    vars.x = new bool**[params.n]; 
+    free(params.n_o);
+    free(params.L);
     for(int i=0; i<params.n; i++) {
-        vars.x[i] = new bool*[params.n_o[i]];
         for(int k=0; k<params.n_o[i]; k++) {
-            vars.x[i][k] = new bool[params.m];
+            free(params.A[i][k]);
+        }
+        free(params.A[i]);
+    }
+    free(params.A);
+    for(int i=0; i<params.n; i++) {
+        for(int k=0; k<params.n_o[i]; k++) {
+            free(params.t[i][k]);
+        }
+        free(params.t[i]);
+    }
+    free(params.t);
+    for(int j=0; j<params.m; j++) {
+        free(params.p[j]);
+    }
+    free(params.p);
+    for(int j=0; j<params.m; j++) {
+        free(params.t_e[j]);
+    }
+    free(params.t_e);
+    for(int j=0; j<params.m; j++) {
+        free(params.t_l[j]);
+    }
+    free(params.t_l);
+}
+
+    //~ vars.y = new double*[params.m];
+    //~ for(int j=0; j<params.n; j++) {
+        //~ vars.y[j] = new double[params.L[j]];
+        //~ for(int l=0; l<params.L[j]; l++) {
+            //~ vars.y[j][l] = 0;
+        //~ }
+    //~ }
+
+void initialize_x(bool*** x, parameters& params)
+{
+    x = new bool**[params.n]; 
+    for(int i=0; i<params.n; i++) {
+        x[i] = new bool*[params.n_o[i]];
+        for(int k=0; k<params.n_o[i]; k++) {
+            x[i][k] = new bool[params.m];
             for(int j=0; j<params.m; j++) {
-                //~ if(params.A[i][k][j] == true && vars.x[i][k][j]==false) {
-                    //~ vars.x[i][k][j]=true;
-                //~ } else {
-                    vars.x[i][k][j]=false;
-                //~ }
+                    x[i][k][j]=false;
             }
         }
     }
 }
 
-variables GRASP_routing(long seed, int nb_iters, parameters& params)
+//~ for(int j=0; j<params.n; j++) {
+        //~ free(vars.y[j]);
+    //~ }
+    //~ free(vars.y);
+
+void delete_x(bool*** x, parameters& params)
 {
-    MTRand rand_gen;
-    variables solution;
-    double W_tot=0.f; // OFV : total workload
-    rand_gen.seed(seed);
+    for(int i=0; i<params.n; i++) {
+        for(int k=0; k<params.n_o[i]; k++) {
+            free(x[i][k]);
+        }
+        free(x[i]);
+    }
+    free(x);
+}
+
+bool*** GRASP_routing(MTRand rand_gen, int* alpha, int nb_iters, parameters& params)
+{
+    bool*** x_sol=NULL;
+    double W_tot=numeric_limits<double>::max(); // OFV : total workload
     //bool
     for(int t=0; t<nb_iters; t++) {
+        bool*** x_temp;
+        double W_tot_temp=0;
+        initialize_x(x_temp,params);
         for(int i=0; i<params.n; i++) {
             for(int k=0; k<params.n_o[i]; k++) {
                 //Restreined Candidates List (will be sorted)
                 vector<double> RCL;
-                vector<int> V(N);
-                 //~ int x=0;
-                 //~ std::iota(V.begin(),V.end(),x++); //Initializing
-                 //~ sort( V.begin(),V.end(), [&](int i,int j){return A[i]<A[j];} );
+                vector<int> index_RCL;
                 vector<double> proba;
                 double totalBias=0;
-                double choice_in_proba=0;
-                double minW=numeric_limits<double>::max(); //to cchange
+                double mach_runif=0;
+                double minW=numeric_limits<double>::max(); //to change ?
                 double maxW=0;
                 double range=0;
                 double alpha=0;
@@ -165,44 +208,54 @@ variables GRASP_routing(long seed, int nb_iters, parameters& params)
                     }
                 }
                 range = maxW - minW;
-                alpha = rand_gen.randDblExc();
+                alpha = rand_gen.randDblExc(); //NO
                 width = range * alpha;
                 for(int j=0; j<params.m; j++) {
                     if(params.t[i][k][j] <= minW + width) {
                         RCL.push_back(params.t[i][k][j]); // maybe costly
+                        index_RCL.push_back(j);
                     }
                 }
+                sort(index_RCL.begin(),index_RCL.end(), [&](int i,int j){return RCL[i]<RCL[j];} );
                 sort(RCL.begin(), RCL.end());
                 proba.resize(RCL.size(),0);
-                for(int r=0; r<proba.size(); r++) { //r for rank
-                    proba(r)=1/r;
+                for(unsigned int r=0; r<proba.size(); r++) { //r for rank
+                    proba[r]=1/r;
                     totalBias+=1/r;
                 }
-                for(int r=0; r<proba.size(); r++) {
-                    proba(r)/=totalBias;
+                for(unsigned int r=0; r<proba.size(); r++) {
+                    proba[r]/=totalBias;
                 }
-                choice_in_proba = rand_gen.randDblExc();
-                for(int r=0; r<proba.size(); r++) {
-                    if(choice_in_proba <= proba(r)) {
-                        params.x[i][k][j] = true;
+                mach_runif = rand_gen.randDblExc();
+                for(unsigned int r=0; r<proba.size(); r++) {
+                    if(mach_runif <= proba[r]) {
+                        x_temp[i][k][index_RCL[r]] = true;
+                        W_tot_temp+=params.t[i][k][index_RCL[r]];
                         break;
                     } else {
-                        choice_in_proba -= proba(r);
+                        mach_runif -= proba[r];
                     }
                 }
             }
         }
+        if(t==0) {
+            x_sol = x_temp;
+        } else if (W_tot_temp < W_tot) {
+            delete_x(x_sol,params);
+            x_sol = x_temp;
+        } else {
+            delete_x(x_temp,params);
+        }
     }
-    return solution;
+    return x_sol;
 }
 
 int main()
 {
     parameters params;
-    variables vars;
     read_parameters("problem8x8.in",params);
-    initialize_variables(vars,params);
-    
+    bool*** x;
+    delete_parameters(params);
     // decision varaibles -> c, y, x
     return 0;
 }
