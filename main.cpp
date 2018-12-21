@@ -30,7 +30,7 @@ struct Parameters{
 
 struct Variables{
     //~ double** y; //completion time of of maintenance task jl
-    bool x[L_MAX][M_MAX]; //affectation of the operation ik to machine j
+    bool x[J_MAX][O_MAX][M_MAX]; //affectation of the operation ik to machine j
 };
 
 
@@ -105,7 +105,7 @@ int read_parameters(string filename)
     return 0;
 }
 
-void initialize_x(bool* x[O_MAX][M_MAX])
+void initialize_x(bool x[J_MAX][O_MAX][M_MAX])
 { 
     for(int i=0; i<params.n; i++) {
         for(int k=0; k<params.n_o[i]; k++) {
@@ -193,7 +193,7 @@ int main()
         for(int j=0; j<params.m; j++) {
             cout << j << " ";
             for(int k=0; k<params.n_o[i]; k++) {
-                    cout << vars.x[i][k][j];
+                    cout << vars.x[i][k][j] << " ";
             }
             cout << endl;
         }
