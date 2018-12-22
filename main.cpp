@@ -125,7 +125,7 @@ void GRASP_routing(int nb_iters)
         double W_tot_temp=0;
         for(int i=0; i<params.n; i++) {
             for(int k=0; k<params.n_o[i]; k++) {
-                //Restreined Candidates List (will be sorted)
+                //Restreined Candidates List of processing times (will be sorted)
                 vector<double> RCL;
                 vector<int> index_RCL;
                 vector<double> proba;
@@ -137,10 +137,10 @@ void GRASP_routing(int nb_iters)
                 double alpha=0;
                 double width=0;
                 for(int j=0; j<params.m; j++) {
-                    if(params.t[i][k][j] < minW) {
+                    if(params.A[i][k][j] == true && params.t[i][k][j] < minW) {
                         minW = params.t[i][k][j];
                     }
-                    if(params.t[i][k][j] < maxW) {
+                    if(params.A[i][k][j] == true && params.t[i][k][j] > maxW) {
                         maxW = params.t[i][k][j];
                     }
                 }
@@ -148,7 +148,7 @@ void GRASP_routing(int nb_iters)
                 alpha = rand_gen.randDblExc(); //NO ?
                 width = range * alpha;
                 for(int j=0; j<params.m; j++) {
-                    if(params.t[i][k][j] <= minW + width) {
+                    if(params.A[i][k][j] == true && params.t[i][k][j] <= minW + width) {
                         RCL.push_back(params.t[i][k][j]); // maybe costly
                         index_RCL.push_back(j);
                     }
@@ -157,8 +157,8 @@ void GRASP_routing(int nb_iters)
                 sort(RCL.begin(), RCL.end());
                 proba.resize(RCL.size(),0);
                 for(unsigned int r=0; r<proba.size(); r++) { //r for rank
-                    proba[r]=1/r;
-                    totalBias+=1/r;
+                    proba[r]=1/(r+1);
+                    totalBias+=1/(r+1);
                 }
                 //~ for(unsigned int r=0; r<proba.size(); r++) {
                     //~ proba[r]/=totalBias;
@@ -180,6 +180,8 @@ void GRASP_routing(int nb_iters)
         } else if (W_tot_temp < W_tot) {
             memcpy(vars.x, x_temp, sizeof(vars.x));
             W_tot = W_tot_temp;
+            cout << "At step " << t << " : " << endl;
+            cout << "W total : " << W_tot << endl;
         }
     }
 }
@@ -187,13 +189,15 @@ void GRASP_routing(int nb_iters)
 int main()
 {
     read_parameters("problem8x8.in");
-    GRASP_routing(5);
+    GRASP_routing(1000);
     for(int i=0; i<params.n; i++) {
-        cout << i << " ";
-        for(int j=0; j<params.m; j++) {
-            cout << j << " ";
-            for(int k=0; k<params.n_o[i]; k++) {
-                    cout << vars.x[i][k][j] << " ";
+        for(int k=0; k<params.n_o[i]; k++) {
+            cout << "j" << i << " ";
+            cout << "t"<< k << " ";
+            for(int j=0; j<params.m; j++) {
+                if(vars.x[i][k][j] == true) {
+                    cout << "m" << j << " : " << params.t[i][k][j];
+                }
             }
             cout << endl;
         }
