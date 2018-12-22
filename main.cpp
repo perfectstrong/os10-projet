@@ -14,6 +14,7 @@ using namespace std;
 #define O_MAX 10 //MAX number of operations per jobs
 #define M_MAX 100 //MAX number of machines
 #define L_MAX 10 //MAX number of maintenance tasks per machine
+#define NB_ITERS 1000
 #define SEED 2018
 
 struct Parameters{
@@ -28,16 +29,19 @@ struct Parameters{
     double t_l[L_MAX][M_MAX]; //maintenance completion time windows end (lateness)
 };
 
-struct Variables{
-    //~ double** y; //completion time of of maintenance task jl
-    bool x[J_MAX][O_MAX][M_MAX]; //affectation of the operation ik to machine j
+struct Solution{
+    //affectation of the operation ik to machine j with position 
+    int x[J_MAX][O_MAX][M_MAX];
+    double W_tot=0; //Total workload (of all machines)
+    double W_max=0; //Maximum Workload (of machines)
+    double C_max=0; //Maximum completion time (of machines)
 };
 
 
 //static variables
 static MTRand rand_gen(SEED);
 static Parameters params;
-static Variables vars; // assignements
+static Solution solutions[NB_ITERS];
 
 int read_parameters(string filename)
 {
@@ -105,24 +109,22 @@ int read_parameters(string filename)
     return 0;
 }
 
-void initialize_x(bool x[J_MAX][O_MAX][M_MAX])
+void initialize_x(int x[J_MAX][O_MAX][M_MAX])
 { 
     for(int i=0; i<params.n; i++) {
         for(int k=0; k<params.n_o[i]; k++) {
             for(int j=0; j<params.m; j++) {
-                    x[i][k][j]=false;
+                    x[i][k][j]=0;
             }
         }
     }
 }
 
-void GRASP_routing(int nb_iters)
+void GRASP_routing()
 {
-    double W_tot=numeric_limits<double>::max(); // OFV : total workload
-    bool x_temp[J_MAX][O_MAX][M_MAX];
-    for(int t=0; t<nb_iters; t++) {
-        initialize_x(x_temp);
-        double W_tot_temp=0;
+    //double W_tot=numeric_limits<double>::max(); // OFV : total workload
+    for(int t=0; t<NB_ITERS; t++) {
+        initialize_x(solutions[t].x);
         for(int i=0; i<params.n; i++) {
             for(int k=0; k<params.n_o[i]; k++) {
                 //Restreined Candidates List of processing times (will be sorted)
@@ -154,7 +156,7 @@ void GRASP_routing(int nb_iters)
                     }
                 }
                 sort(index_RCL.begin(),index_RCL.end(), [&](int i,int j){return RCL[i]<RCL[j];} );
-                sort(RCL.begin(), RCL.end());
+                sort(RCL.begin(), RCL.end()); //to test
                 proba.resize(RCL.size(),0);
                 for(unsigned int r=0; r<proba.size(); r++) { //r for rank
                     proba[r]=1/(r+1);
@@ -166,8 +168,7 @@ void GRASP_routing(int nb_iters)
                 mach_runif = rand_gen.randDblExc(totalBias);
                 for(unsigned int r=0; r<proba.size(); r++) {
                     if(mach_runif <= proba[r]) {
-                        x_temp[i][k][index_RCL[r]] = true;
-                        W_tot_temp+=params.t[i][k][index_RCL[r]];
+                        solutions[t].x[i][k][index_RCL[r]] = -1;
                         break;
                     } else {
                         mach_runif -= proba[r];
@@ -175,33 +176,49 @@ void GRASP_routing(int nb_iters)
                 }
             }
         }
-        if(t==0) {
-            memcpy(vars.x, x_temp, sizeof(vars.x));
-        } else if (W_tot_temp < W_tot) {
-            memcpy(vars.x, x_temp, sizeof(vars.x));
-            W_tot = W_tot_temp;
-            cout << "At step " << t << " : " << endl;
-            cout << "W total : " << W_tot << endl;
+        //Calculations of the OFV
+        for(int j=0; j<params.m; j++) {
+            double W_temp = 0;
+            for(int i=0; i<params.n; i++) {
+                for(int k=0; k<params.n_o[i]; k++) {
+                    if(solutions[t].x[i][k][j] == -1) {
+                        W_temp += params.t[i][k][j];
+                        solutions[t].W_tot += params.t[i][k][j];
+                    }
+                }
+            }
+            for(int l=0; l<params.L[j]; l++) {
+                W_temp += params.p[l][j];
+                solutions[t].W_tot += params.p[l][j];
+            }
+            if(W_temp > solutions[t].W_max) {
+                solutions[t].W_max = W_temp;
+            }
         }
+        
+        
+        cout << "At step " << t << " : " << " ";
+        cout << "W total : " << solutions[t].W_tot << " ";
+        cout << "W max : " << solutions[t].W_max << endl;
     }
 }
 
 int main()
 {
     read_parameters("problem8x8.in");
-    GRASP_routing(1000);
-    for(int i=0; i<params.n; i++) {
-        for(int k=0; k<params.n_o[i]; k++) {
-            cout << "j" << i << " ";
-            cout << "t"<< k << " ";
-            for(int j=0; j<params.m; j++) {
-                if(vars.x[i][k][j] == true) {
-                    cout << "m" << j << " : " << params.t[i][k][j];
-                }
-            }
-            cout << endl;
-        }
-    }
+    GRASP_routing();
+    //~ for(int i=0; i<params.n; i++) {
+        //~ for(int k=0; k<params.n_o[i]; k++) {
+            //~ cout << "j" << i << " ";
+            //~ cout << "t"<< k << " ";
+            //~ for(int j=0; j<params.m; j++) {
+                //~ if(vars.x[i][k][j] == true) {
+                    //~ cout << "m" << j << " : " << params.t[i][k][j];
+                //~ }
+            //~ }
+            //~ cout << endl;
+        //~ }
+    //~ }
     // decision varaibles -> c, y, x
     return 0;
 }
