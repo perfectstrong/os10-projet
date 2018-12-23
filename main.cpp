@@ -31,12 +31,19 @@ struct Parameters{
 
 struct Solution{
     //affectation of the operation ik to machine j with position 
-    int x[J_MAX][O_MAX][M_MAX];
+    int x[J_MAX][M_MAX];
+    double W[M_MAX]; //Workload of each machine
     double W_tot=0; //Total workload (of all machines)
     double W_max=0; //Maximum Workload (of machines)
     double C_max=0; //Maximum completion time (of machines)
 };
 
+//index of an operation
+struct Indexop{
+    int i;
+    int j;
+    int k;
+};
 
 //static variables
 static MTRand rand_gen(SEED);
@@ -109,14 +116,12 @@ int read_parameters(string filename)
     return 0;
 }
 
-void initialize_x(int x[J_MAX][O_MAX][M_MAX])
+void initialize_x(int x[J_MAX][M_MAX])
 { 
     for(int i=0; i<params.n; i++) {
-        for(int k=0; k<params.n_o[i]; k++) {
             for(int j=0; j<params.m; j++) {
-                    x[i][k][j]=0;
+                    x[i][j]=-1;
             }
-        }
     }
 }
 
@@ -124,75 +129,99 @@ void GRASP_routing()
 {
     //double W_tot=numeric_limits<double>::max(); // OFV : total workload
     for(int t=0; t<NB_ITERS; t++) {
-        initialize_x(solutions[t].x);
+        bool operation_assigned[J_MAX][O_MAX];
+        int nb_operations_to_assign = 0;
+        for(int j=0; j<params.m; j++) {
+            for(int l=0; l<params.L[j]; l++) {
+                solutions[t].W[j] += params.p[l][j];
+                solutions[t].W_tot += params.p[l][j];
+            }
+        }
         for(int i=0; i<params.n; i++) {
+            nb_operations_to_assign += params.n_o[i];
             for(int k=0; k<params.n_o[i]; k++) {
-                //Restreined Candidates List of processing times (will be sorted)
-                vector<double> RCL;
-                vector<int> index_RCL;
-                vector<double> proba;
-                double totalBias=0;
-                double mach_runif=0;
-                double minW=numeric_limits<double>::max(); //to change ?
-                double maxW=0;
-                double range=0;
-                double alpha=0;
-                double width=0;
-                for(int j=0; j<params.m; j++) {
-                    if(params.A[i][k][j] == true && params.t[i][k][j] < minW) {
-                        minW = params.t[i][k][j];
-                    }
-                    if(params.A[i][k][j] == true && params.t[i][k][j] > maxW) {
-                        maxW = params.t[i][k][j];
-                    }
-                }
-                range = maxW - minW;
-                alpha = rand_gen.randDblExc(); //NO ?
-                width = range * alpha;
-                for(int j=0; j<params.m; j++) {
-                    if(params.A[i][k][j] == true && params.t[i][k][j] <= minW + width) {
-                        RCL.push_back(params.t[i][k][j]); // maybe costly
-                        index_RCL.push_back(j);
-                    }
-                }
-                sort(index_RCL.begin(),index_RCL.end(), [&](int i,int j){return RCL[i]<RCL[j];} );
-                sort(RCL.begin(), RCL.end()); //to test
-                proba.resize(RCL.size(),0);
-                for(unsigned int r=0; r<proba.size(); r++) { //r for rank
-                    proba[r]=1/(r+1);
-                    totalBias+=1/(r+1);
-                }
-                //~ for(unsigned int r=0; r<proba.size(); r++) {
-                    //~ proba[r]/=totalBias;
-                //~ }
-                mach_runif = rand_gen.randDblExc(totalBias);
-                for(unsigned int r=0; r<proba.size(); r++) {
-                    if(mach_runif <= proba[r]) {
-                        solutions[t].x[i][k][index_RCL[r]] = -1;
-                        break;
-                    } else {
-                        mach_runif -= proba[r];
+                operation_assigned[i][k] = false;
+            }
+        }
+        initialize_x(solutions[t].x);
+        while(nb_operations_to_assign > 0) {
+            //Restreined Candidates List of processing times (will be sorted)
+            vector<double> RCL;
+            vector<int> index_i_RCL;
+            vector<int> index_j_RCL;
+            vector<int> index_k_RCL;
+            vector<double> proba;
+            double totalBias=0;
+            double candidate_runif=0; // uniform varaible to choose the candidate
+            double minW=numeric_limits<double>::max(); //to change ?
+            double maxW=0;
+            double range=0;
+            double alpha=0;
+            double width=0;
+            
+            //Determine the range
+            for(int i=0; i<params.n; i++) {
+                for(int k=0; k<params.n_o[i]; k++) {
+                    if(operation_assigned[i][k] == false) {
+                           for(int j=0; j<params.m; j++) {
+                            if(params.A[i][k][j] == true && params.t[i][k][j] < minW) {
+                                minW = params.t[i][k][j];
+                            }
+                            if(params.A[i][k][j] == true && params.t[i][k][j] > maxW) {
+                                maxW = params.t[i][k][j];
+                            }
+                        } 
                     }
                 }
             }
+            range = maxW - minW;
+            alpha = rand_gen.randDblExc(); //NO ?
+            width = range * alpha;
+            //Determine the candidates
+            for(int i=0; i<params.n; i++) {
+                for(int k=0; k<params.n_o[i]; k++) {
+                    if(operation_assigned[i][k] == false) {
+                        for(int j=0; j<params.m; j++) {
+                            if(params.A[i][k][j] == true && params.t[i][k][j] <= minW + width) {
+                                RCL.push_back(params.t[i][k][j]); // maybe costly
+                                index_i_RCL.push_back(i);
+                                index_j_RCL.push_back(j);
+                                index_k_RCL.push_back(k);
+                            }
+                        }
+                    }
+                }
+            } 
+            sort(index_i_RCL.begin(),index_i_RCL.end(), [&](int i,int j){return RCL[i]<RCL[j];} );
+            sort(index_j_RCL.begin(),index_j_RCL.end(), [&](int i,int j){return RCL[i]<RCL[j];} );
+            sort(index_k_RCL.begin(),index_k_RCL.end(), [&](int i,int j){return RCL[i]<RCL[j];} );
+            sort(RCL.begin(), RCL.end()); //to test
+            proba.resize(RCL.size(),0);
+            for(unsigned int r=0; r<proba.size(); r++) { //r for rank
+                    proba[r]=1/(r+1);
+                    totalBias+=1/(r+1);
+            }
+            candidate_runif = rand_gen.randDblExc(totalBias);
+            for(unsigned int r=0; r<proba.size(); r++) {
+                if(candidate_runif <= proba[r]) {
+                    int ind_i = index_i_RCL[r];
+                    int ind_j = index_j_RCL[r];
+                    int ind_k = index_k_RCL[r];
+                    solutions[t].x[ind_i][ind_j] = ind_k;
+                    operation_assigned[ind_i][ind_k] = true;
+                    solutions[t].W[ind_j] += params.t[ind_i][ind_k][ind_j];
+                    solutions[t].W_tot += params.t[ind_i][ind_k][ind_j];
+                    break;
+                } else {
+                    candidate_runif -= proba[r];
+                }
+            }
+            nb_operations_to_assign--;
         }
         //Calculations of the OFV
         for(int j=0; j<params.m; j++) {
-            double W_temp = 0;
-            for(int i=0; i<params.n; i++) {
-                for(int k=0; k<params.n_o[i]; k++) {
-                    if(solutions[t].x[i][k][j] == -1) {
-                        W_temp += params.t[i][k][j];
-                        solutions[t].W_tot += params.t[i][k][j];
-                    }
-                }
-            }
-            for(int l=0; l<params.L[j]; l++) {
-                W_temp += params.p[l][j];
-                solutions[t].W_tot += params.p[l][j];
-            }
-            if(W_temp > solutions[t].W_max) {
-                solutions[t].W_max = W_temp;
+            if(solutions[t].W[j] > solutions[t].W_max) {
+                solutions[t].W_max = solutions[t].W[j];
             }
         }
         
@@ -203,22 +232,51 @@ void GRASP_routing()
     }
 }
 
+void GRASP_scheduling() {
+    for(int t=0; t<NB_ITERS; t++) {
+        double machine_completion_time[M_MAX];
+        double job_completion_time[J_MAX];
+        int last_operation[J_MAX];
+        int nb_operations_to_schedule = 0;
+        for(int j=0; j<params.m; j++) {
+            machine_completion_time[j] = 0;
+        }
+        for(int i=0; i<params.n; i++) {
+            job_completion_time[i] = 0;
+            last_operation[i] = 0;
+            nb_operations_to_schedule += params.n_o[i];
+        }
+        while(nb_operations_to_schedule > 0) {
+            
+            
+        }
+        //~ for(int j=0; j<params.m; j++) {
+             //~ //Restreined Candidates List of processing times (will be sorted)
+            //~ vector<double> RCL;
+            //~ vector<int> index_RCL;
+            //~ vector<double> proba;
+            //~ double totalBias=0;
+            //~ double mach_runif=0;
+            //~ double minC=numeric_limits<double>::max(); //to change ?
+            //~ double maxC=0;
+            //~ double range=0;
+            //~ double alpha=0;
+            //~ double width=0;
+            //~ int nb_jobs = 0;
+            //~ for(int task=0; task<params.n; task++) {
+                //~ for(int i=0; i<params.n; i++) {
+                    //~ int k=solutions[t].x[i][j];
+                    //~ int c_temp = completion_time[j];
+                //~ }
+            //~ }
+        //~ }
+    }
+}
+
 int main()
 {
     read_parameters("problem8x8.in");
     GRASP_routing();
-    //~ for(int i=0; i<params.n; i++) {
-        //~ for(int k=0; k<params.n_o[i]; k++) {
-            //~ cout << "j" << i << " ";
-            //~ cout << "t"<< k << " ";
-            //~ for(int j=0; j<params.m; j++) {
-                //~ if(vars.x[i][k][j] == true) {
-                    //~ cout << "m" << j << " : " << params.t[i][k][j];
-                //~ }
-            //~ }
-            //~ cout << endl;
-        //~ }
-    //~ }
     // decision varaibles -> c, y, x
     return 0;
 }
