@@ -14,7 +14,7 @@ using namespace std;
 #define O_MAX 10 //MAX number of operations per jobs
 #define M_MAX 100 //MAX number of machines
 #define L_MAX 10 //MAX number of maintenance tasks per machine
-#define NB_ITERS 1000
+#define NB_ITERS 10000
 #define SEED 2018
 
 struct Parameters{
@@ -30,8 +30,8 @@ struct Parameters{
 };
 
 struct Solution{
-    //affectation of the operation ik to machine j with position 
-    int x[J_MAX][M_MAX];
+    //affectation of the operation ik to machine j
+    int x[J_MAX][O_MAX];
     double W[M_MAX]; //Workload of each machine
     double W_tot=0; //Total workload (of all machines)
     double W_max=0; //Maximum Workload (of machines)
@@ -116,20 +116,21 @@ int read_parameters(string filename)
     return 0;
 }
 
-void initialize_x(int x[J_MAX][M_MAX])
+void initialize_x(int x[J_MAX][O_MAX])
 { 
     for(int i=0; i<params.n; i++) {
-            for(int j=0; j<params.m; j++) {
-                    x[i][j]=-1;
+            for(int k=0; k<params.n_o[i]; k++) {
+                    x[i][k]=-1;
             }
     }
 }
 
 void GRASP_routing()
 {
+    double W_tot_best = numeric_limits<double>::max();
+    double W_max_best = numeric_limits<double>::max();
     //double W_tot=numeric_limits<double>::max(); // OFV : total workload
     for(int t=0; t<NB_ITERS; t++) {
-        bool operation_assigned[J_MAX][O_MAX];
         int nb_operations_to_assign = 0;
         for(int j=0; j<params.m; j++) {
             for(int l=0; l<params.L[j]; l++) {
@@ -139,9 +140,6 @@ void GRASP_routing()
         }
         for(int i=0; i<params.n; i++) {
             nb_operations_to_assign += params.n_o[i];
-            for(int k=0; k<params.n_o[i]; k++) {
-                operation_assigned[i][k] = false;
-            }
         }
         initialize_x(solutions[t].x);
         while(nb_operations_to_assign > 0) {
@@ -153,7 +151,7 @@ void GRASP_routing()
             vector<double> proba;
             double totalBias=0;
             double candidate_runif=0; // uniform varaible to choose the candidate
-            double minW=numeric_limits<double>::max(); //to change ?
+            double minW=numeric_limits<double>::max();
             double maxW=0;
             double range=0;
             double alpha=0;
@@ -162,7 +160,7 @@ void GRASP_routing()
             //Determine the range
             for(int i=0; i<params.n; i++) {
                 for(int k=0; k<params.n_o[i]; k++) {
-                    if(operation_assigned[i][k] == false) {
+                    if(solutions[t].x[i][k] == -1) {
                            for(int j=0; j<params.m; j++) {
                             if(params.A[i][k][j] == true && params.t[i][k][j] < minW) {
                                 minW = params.t[i][k][j];
@@ -180,7 +178,7 @@ void GRASP_routing()
             //Determine the candidates
             for(int i=0; i<params.n; i++) {
                 for(int k=0; k<params.n_o[i]; k++) {
-                    if(operation_assigned[i][k] == false) {
+                    if(solutions[t].x[i][k] == -1) {
                         for(int j=0; j<params.m; j++) {
                             if(params.A[i][k][j] == true && params.t[i][k][j] <= minW + width) {
                                 RCL.push_back(params.t[i][k][j]); // maybe costly
@@ -207,8 +205,7 @@ void GRASP_routing()
                     int ind_i = index_i_RCL[r];
                     int ind_j = index_j_RCL[r];
                     int ind_k = index_k_RCL[r];
-                    solutions[t].x[ind_i][ind_j] = ind_k;
-                    operation_assigned[ind_i][ind_k] = true;
+                    solutions[t].x[ind_i][ind_k] = ind_j;
                     solutions[t].W[ind_j] += params.t[ind_i][ind_k][ind_j];
                     solutions[t].W_tot += params.t[ind_i][ind_k][ind_j];
                     break;
@@ -225,11 +222,19 @@ void GRASP_routing()
             }
         }
         
-        
-        cout << "At step " << t << " : " << " ";
-        cout << "W total : " << solutions[t].W_tot << " ";
-        cout << "W max : " << solutions[t].W_max << endl;
+        if(solutions[t].W_tot < W_tot_best) {
+            W_tot_best = solutions[t].W_tot;
+        }
+        if(solutions[t].W_max < W_max_best) {
+            W_max_best = solutions[t].W_max;
+        }
+        //~ cout << "At step " << t << " : " << " ";
+        //~ cout << "W total : " << solutions[t].W_tot << " ";
+        //~ cout << "W max : " << solutions[t].W_max << endl;
     }
+    cout << "Conclusion :" << endl;
+    cout << "W total best : " << W_tot_best << " ";
+    cout << "W max best : " << W_max_best << endl;
 }
 
 void GRASP_scheduling() {
@@ -250,26 +255,6 @@ void GRASP_scheduling() {
             
             
         }
-        //~ for(int j=0; j<params.m; j++) {
-             //~ //Restreined Candidates List of processing times (will be sorted)
-            //~ vector<double> RCL;
-            //~ vector<int> index_RCL;
-            //~ vector<double> proba;
-            //~ double totalBias=0;
-            //~ double mach_runif=0;
-            //~ double minC=numeric_limits<double>::max(); //to change ?
-            //~ double maxC=0;
-            //~ double range=0;
-            //~ double alpha=0;
-            //~ double width=0;
-            //~ int nb_jobs = 0;
-            //~ for(int task=0; task<params.n; task++) {
-                //~ for(int i=0; i<params.n; i++) {
-                    //~ int k=solutions[t].x[i][j];
-                    //~ int c_temp = completion_time[j];
-                //~ }
-            //~ }
-        //~ }
     }
 }
 
