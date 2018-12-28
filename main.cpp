@@ -14,7 +14,7 @@ using namespace std;
 #define O_MAX 10 //MAX number of operations per jobs
 #define M_MAX 100 //MAX number of machines
 #define L_MAX 10 //MAX number of maintenance tasks per machine
-#define NB_ITERS 1000
+#define NB_ITERS 100
 #define SEED 2018
 
 struct Parameters{
@@ -24,12 +24,14 @@ struct Parameters{
     int L[M_MAX]; //number of maintenance tasks on machine j
     bool A[J_MAX][O_MAX][M_MAX]; //availables machines for task k of job i
     double t[J_MAX][O_MAX][M_MAX]; //processing time for task k of job i on machine j
+    //CAUTION : Maintenance task have tobe given in chronological order
     double p[M_MAX][L_MAX]; //processing time for maintenance task l on machine j
     double t_e[M_MAX][L_MAX]; //maintenance completion time windows begin (earliest)
     double t_l[M_MAX][L_MAX]; //maintenance completion time windows end (lateness)
 };
 
 struct Solution{
+    // decision varaibles -> x, y, c
     //affectation of the operation ik to a machine
     int x[J_MAX][O_MAX];
     //completion time of maintenance task l on machine j
@@ -44,16 +46,44 @@ struct Solution{
     double C_max=0; //Maximum completion time (of machines)
 };
 
+struct candidate 
+{
+    int i; //job
+    int k; //operation
+    int j; //machine
+    double obj_value; //workload or completion time
+};
+
 //static variables
 static MTRand rand_gen(SEED);
 static Parameters params;
-static Solution solutions[NB_ITERS];
+static Solution solution[NB_ITERS];
+
+bool comparisonCandidates(const candidate& candidate1, const candidate& candidate2)
+{
+    if (candidate1.obj_value < candidate2.obj_value) {
+        return true;
+    } else if (candidate1.obj_value == candidate2.obj_value) {
+        if(candidate1.i < candidate2.i) {
+            return true;
+        } else if(candidate1.i == candidate2.i) {
+            if(candidate1.k < candidate2.k) {
+                return true;
+            } else if(candidate1.k == candidate2.k) {
+                if(candidate1.j < candidate2.j) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
 
 int read_parameters(string filename)
 {
     ifstream file(filename);
     if(file.fail()) {
-        cout << "Error : file \" "<< filename <<" \" not found" << endl;
+        cout << "Error reading : file \" "<< filename <<" \" not found" << endl;
         return 1;
     }
     string word;
@@ -130,23 +160,21 @@ void GRASP_routing()
     double W_max_best = numeric_limits<double>::max();
     //double W_tot=numeric_limits<double>::max(); // OFV : total workload
     for(int t=0; t<NB_ITERS; t++) {
+        //~ cout << "iteration " << t << endl;
         int nb_operations_to_assign = 0;
         for(int j=0; j<params.m; j++) {
             for(int l=0; l<params.L[j]; l++) {
-                solutions[t].W[j] += params.p[j][l];
-                solutions[t].W_tot += params.p[j][l];
+                solution[t].W[j] += params.p[j][l];
+                solution[t].W_tot += params.p[j][l];
             }
         }
         for(int i=0; i<params.n; i++) {
             nb_operations_to_assign += params.n_o[i];
         }
-        initialize_x(solutions[t].x);
+        initialize_x(solution[t].x);
         while(nb_operations_to_assign > 0) {
             //Restreined Candidates List of processing times (will be sorted)
-            vector<double> RCL;
-            vector<int> index_i_RCL;
-            vector<int> index_j_RCL;
-            vector<int> index_k_RCL;
+            vector<candidate> RCL;
             vector<double> proba;
             double totalBias=0;
             double candidate_runif=0; // uniform variable to choose the candidate
@@ -159,7 +187,7 @@ void GRASP_routing()
             //Determine the range
             for(int i=0; i<params.n; i++) {
                 for(int k=0; k<params.n_o[i]; k++) {
-                    if(solutions[t].x[i][k] == -1) {
+                    if(solution[t].x[i][k] == -1) {
                            for(int j=0; j<params.m; j++) {
                             if(params.A[i][k][j] == true && params.t[i][k][j] < W_min) {
                                 W_min = params.t[i][k][j];
@@ -177,23 +205,33 @@ void GRASP_routing()
             //Determine the candidates
             for(int i=0; i<params.n; i++) {
                 for(int k=0; k<params.n_o[i]; k++) {
-                    if(solutions[t].x[i][k] == -1) {
+                    if(solution[t].x[i][k] == -1) {
                         for(int j=0; j<params.m; j++) {
                             if(params.A[i][k][j] == true && params.t[i][k][j] <= W_min + width) {
-                                RCL.push_back(params.t[i][k][j]); // maybe costly
-                                index_i_RCL.push_back(i);
-                                index_j_RCL.push_back(j);
-                                index_k_RCL.push_back(k);
+                                //~ candidate temp_candidate = 
+                                //~ {i, k, j, params.t[i][k][j]};
+                                RCL.push_back(candidate());
+                                RCL.back().i=i;
+                                RCL.back().k=k;
+                                RCL.back().j=j;
+                                RCL.back().obj_value=params.t[i][k][j];
                             }
                         }
                     }
                 }
             }
             //Sort the Candidate list 
-            sort(index_i_RCL.begin(),index_i_RCL.end(), [&](int i,int j){return RCL[i]<RCL[j];} );
-            sort(index_j_RCL.begin(),index_j_RCL.end(), [&](int i,int j){return RCL[i]<RCL[j];} );
-            sort(index_k_RCL.begin(),index_k_RCL.end(), [&](int i,int j){return RCL[i]<RCL[j];} );
-            sort(RCL.begin(), RCL.end()); //to test
+            sort(RCL.begin(), RCL.end(), comparisonCandidates); //to test
+            //~ if(t == 10) {
+                //~ cout << "candidates after :" << endl;
+                //~ for(unsigned int r=0; r<RCL.size(); r++) {
+                    //~ cout << RCL[r].i << " ";
+                    //~ cout << RCL[r].k << " ";
+                    //~ cout << RCL[r].j << " ";
+                    //~ cout << RCL[r].obj_value << " ";
+                    //~ cout << endl;
+                //~ }
+            //~ }
             proba.resize(RCL.size(),0);
             //Determine the probability of selection
             for(unsigned int r=0; r<proba.size(); r++) { //r for rank
@@ -204,14 +242,18 @@ void GRASP_routing()
             candidate_runif = rand_gen.randDblExc(totalBias);
             for(unsigned int r=0; r<proba.size(); r++) {
                 if(candidate_runif <= proba[r]) {
-                    int i = index_i_RCL[r];
-                    int j = index_j_RCL[r];
-                    int k = index_k_RCL[r];
-                    solutions[t].x[i][k] = j;
-                    solutions[t].W[j] += params.t[i][k][j];
-                    solutions[t].W_tot += params.t[i][k][j];
-                    if(solutions[t].W[j] > solutions[t].W_max) {
-                        solutions[t].W_max = solutions[t].W[j];
+                    int i = RCL[r].i;
+                    int k = RCL[r].k;
+                    int j = RCL[r].j;
+                    //~ if(t==10) {
+                        //~ cout << "sélection : " << i << " " << k ;
+                        //~ cout << " pour : " << j << endl;
+                    //~ }
+                    solution[t].x[i][k] = j;
+                    solution[t].W[j] += params.t[i][k][j];
+                    solution[t].W_tot += params.t[i][k][j];
+                    if(solution[t].W[j] > solution[t].W_max) {
+                        solution[t].W_max = solution[t].W[j];
                     }
                     break;
                 } else {
@@ -221,15 +263,15 @@ void GRASP_routing()
             nb_operations_to_assign--;
         }
         
-        if(solutions[t].W_tot < W_tot_best) {
-            W_tot_best = solutions[t].W_tot;
+        if(solution[t].W_tot < W_tot_best) {
+            W_tot_best = solution[t].W_tot;
         }
-        if(solutions[t].W_max < W_max_best) {
-            W_max_best = solutions[t].W_max;
+        if(solution[t].W_max < W_max_best) {
+            W_max_best = solution[t].W_max;
         }
         //~ cout << "At step " << t << " : " << " ";
-        //~ cout << "W total : " << solutions[t].W_tot << " ";
-        //~ cout << "W max : " << solutions[t].W_max << endl;
+        //~ cout << "W total : " << solution[t].W_tot << " ";
+        //~ cout << "W max : " << solution[t].W_max << endl;
     }
     cout << "Conclusion :" << endl;
     cout << "W total best : " << W_tot_best << " ";
@@ -239,28 +281,27 @@ void GRASP_routing()
 void GRASP_scheduling() {
     double C_max_best = numeric_limits<double>::max();
     for(int t=0; t<NB_ITERS; t++) {
-        int last_operation[J_MAX];
+        int current_operation[J_MAX];
         int nb_operations_to_schedule = 0;
         for(int j=0; j<params.m; j++) {
-            solutions[t].C_j[j] = 0;
+            solution[t].C_j[j] = 0;
             for(int l=0; l<params.L[j]; l++) {
                 // to indicate that is not scheduled yet
-                solutions[t].y[j][l] = -1; 
+                solution[t].y[j][l] = -1; 
             }
         }
         for(int i=0; i<params.n; i++) {
             for(int k=0; k<params.n_o[i]; k++) {
                 // to indicate that is not scheduled yet
-                solutions[t].c[i][k] = -1;
+                solution[t].c[i][k] = -1;
             }
-            solutions[t].C_i[i] = 0;
-            last_operation[i] = 0;
+            solution[t].C_i[i] = 0;
+            current_operation[i] = 0;
             nb_operations_to_schedule += params.n_o[i];
         }
         while(nb_operations_to_schedule > 0) {
             //Restreined Candidates List of completion times (will be sorted)
-            vector<double> RCL;
-            vector<int> index_i_RCL;
+            vector<candidate> RCL;
             vector<double> proba;
             double totalBias=0;
             double candidate_runif=0; // uniform variable to choose the candidate
@@ -272,20 +313,20 @@ void GRASP_scheduling() {
             double width=0;
             //Determine the range
             for(int i=0; i<params.n; i++) { 
-                int k = last_operation[i]+1;
+                int k = current_operation[i];
                 if(k < params.n_o[i]) {
-                    int j = solutions[t].x[i][k];
+                    int j = solution[t].x[i][k];
                     double begin_time=0;
                     //determine the most recent completion time
-                    if(solutions[t].C_i[i] > solutions[t].C_j[j]) {
-                        begin_time = solutions[t].C_i[i];
+                    if(solution[t].C_i[i] > solution[t].C_j[j]) {
+                        begin_time = solution[t].C_i[i];
                     } else {
-                        begin_time = solutions[t].C_j[j];
+                        begin_time = solution[t].C_j[j];
                     }
                     //checking if no conflict with a maintenance task
                     for(int l=0; l<params.L[j]; l++) {
                         //if conflict, take into account in begin time
-                        if(solutions[t].y[j][l] < 0 && 
+                        if(solution[t].y[j][l] < 0 && 
                         begin_time+params.t[i][k][j] > params.t_l[j][l]-params.p[j][l]) {
                             if(begin_time < params.t_e[j][l]) {
                                 begin_time = params.t_e[j][l];
@@ -293,10 +334,10 @@ void GRASP_scheduling() {
                             begin_time = begin_time + params.p[j][l];
                         }
                     }
-                    if(begin_time + params.t[i][k][j] > solutions[t].C_max) {
+                    if(begin_time + params.t[i][k][j] > solution[t].C_max) {
                         C_max_temp[i] = begin_time + params.t[i][k][j];
                     } else {
-                        C_max_temp[i] = solutions[t].C_max;
+                        C_max_temp[i] = solution[t].C_max;
                     }
                     if(C_max_temp[i] < C_max_min) {
                         C_max_min = C_max_temp[i];
@@ -310,16 +351,18 @@ void GRASP_scheduling() {
             width = range * alpha;
             //Determine the candidates
             for(int i=0; i<params.n; i++) {
-                int k = last_operation[i]+1;
-                int j = solutions[t].x[i][k];
+                int k = current_operation[i];
+                int j = solution[t].x[i][k];
                 if(k < params.n_o[i] && C_max_temp[i] <= C_max_min + width) {
-                    RCL.push_back(params.t[i][k][j]);
-                    index_i_RCL.push_back(i);
+                    RCL.push_back(candidate());
+                    RCL.back().i=i;
+                    RCL.back().k=k;
+                    RCL.back().j=j;
+                    RCL.back().obj_value=params.t[i][k][j];
                 }
             } 
             //Sort the Candidate list 
-            sort(index_i_RCL.begin(),index_i_RCL.end(), [&](int i,int j){return RCL[i]<RCL[j];} );
-            sort(RCL.begin(), RCL.end()); //to test
+            sort(RCL.begin(), RCL.end(), comparisonCandidates); 
             proba.resize(RCL.size(),0);
             //Determine the probability of selection
             for(unsigned int r=0; r<proba.size(); r++) { //r for rank
@@ -330,43 +373,61 @@ void GRASP_scheduling() {
             candidate_runif = rand_gen.randDblExc(totalBias);
             for(unsigned int r=0; r<proba.size(); r++) {
                 if(candidate_runif <= proba[r]) {
-                    int i = index_i_RCL[r];
-                    int k = last_operation[i]+1;
-                    int j = solutions[t].x[i][k];
+                    int i = RCL[r].i;
+                    int k = RCL[r].k;
+                    int j = RCL[r].j;
                     double begin_time=0;
                     //determine the most recent completion time
-                    if(solutions[t].C_i[i] > solutions[t].C_j[j]) {
-                        begin_time = solutions[t].C_i[i];
+                    if(solution[t].C_i[i] > solution[t].C_j[j]) {
+                        begin_time = solution[t].C_i[i];
                     } else {
-                        begin_time = solutions[t].C_j[j];
+                        begin_time = solution[t].C_j[j];
                     }
                     //checking if no conflict with a maintenance task
                     for(int l=0; l<params.L[j]; l++) {
                         //if conflict, take into account in begin time
-                        if(solutions[t].y[j][l] < 0 && //it can only happen on non-scheduled maintenance task
+                        if(solution[t].y[j][l] < 0 && //it can only happen on non-scheduled maintenance task
                         begin_time+params.t[i][k][j] > params.t_l[j][l]-params.p[j][l]) {
                             if(begin_time < params.t_e[j][l]) {
                                 begin_time = params.t_e[j][l];
                             }
                             // and schedule it first
-                            solutions[t].y[j][l] = begin_time + params.p[j][l];
-                            begin_time = solutions[t].y[j][l];
+                            solution[t].y[j][l] = begin_time + params.p[j][l];
+                            begin_time = solution[t].y[j][l];
                         }
                     }
                     //schedule the selected operation
-                    solutions[t].c[i][k] = begin_time + params.t[i][k][j];
-                    solutions[t].C_i[i] = solutions[t].c[i][k];
-                    solutions[t].C_j[j] = solutions[t].c[i][k];
-                    if(solutions[t].c[i][k] > solutions[t].C_max) {
-                        solutions[t].C_max = solutions[t].c[i][k];
+                    solution[t].c[i][k] = begin_time + params.t[i][k][j];
+                    current_operation[i]++;
+                    solution[t].C_i[i] = solution[t].c[i][k];
+                    solution[t].C_j[j] = solution[t].c[i][k];
+                    if(solution[t].c[i][k] > solution[t].C_max) {
+                        solution[t].C_max = solution[t].c[i][k];
                     }
                     break;
                 } else {
                     candidate_runif -= proba[r];
                 }
             }
-            if(solutions[t].C_max < C_max_best) {
-                C_max_best = solutions[t].C_max;
+            //CAUTION : Maintenance task have tobe given in chronological order
+            //Scheduling the last maintenance task
+            for(int j=0; j<params.m; j++) {
+                double begin_time = solution[t].C_j[j];
+                for(int l=0; l<params.L[j]; l++) {
+                    if(solution[t].y[j][l] < 0) {
+                        if(begin_time < params.t_e[j][l]) {
+                            begin_time = params.t_e[j][l];
+                        }
+                        // and schedule it first
+                        solution[t].y[j][l] = begin_time + params.p[j][l];
+                        begin_time = solution[t].y[j][l];
+                    }
+                }
+                solution[t].C_j[j] = begin_time;
+            }
+            
+            if(solution[t].C_max < C_max_best) {
+                C_max_best = solution[t].C_max;
             }
             nb_operations_to_schedule--;
         }
@@ -374,11 +435,41 @@ void GRASP_scheduling() {
     cout << " C max best : " << C_max_best << endl;
 }
 
+int writeOutSolution(int t, string filename) {
+    ofstream file(filename);
+    if(file.fail()) {
+        cout << "Error writing : file \" "<< filename <<" \" not found" << endl;
+        return 1;
+    }
+    //add more stats ?
+    for(int i=0; i<params.n; i++) {
+        for(int k=0; k<params.n_o[i]; k++) {
+                int j = solution[t].x[i][k];
+                file << "job " << i << " " << k << " " << j << " ";
+                file << solution[t].c[i][k]-params.t[i][k][j] << " ";
+                file << solution[t].c[i][k] << endl;
+        }
+    }
+    for(int j=0; j<params.m; j++) {
+        for(int l=0; l<params.L[j]; l++) {
+            file << "maintenance " << j << " " << l << " ";
+            file << solution[t].y[j][l]-params.p[j][l] << " ";
+            file << solution[t].y[j][l] << endl;
+        }
+    }
+    return 0;
+}
+
 int main()
 {
-    read_parameters("problem8x8.in");
+    read_parameters("./input/problem8x8.in");
     GRASP_routing();
     GRASP_scheduling();
-    // decision varaibles -> c, y, x
+    writeOutSolution(10, "./output/results8x8.out");
+    //~ {
+        //~ vector<candidate> toto;
+        //~ toto.push_back(candidate());
+        //~ toto.back().i=1;
+    //~ }
     return 0;
 }
