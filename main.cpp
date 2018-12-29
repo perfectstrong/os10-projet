@@ -15,7 +15,7 @@ using namespace std;
 #define M_MAX 100 //MAX number of machines
 #define L_MAX 10 //MAX number of maintenance tasks per machine
 #define NB_ITERS 1000
-#define SEED 2018
+#define SEED 2019
 
 struct Parameters{
     int n=0; //number of jobs
@@ -88,7 +88,7 @@ int read_parameters(string filename)
     }
     string word;
     file >> word;
-    cout << word << endl;
+    //~ cout << word << endl;
     file >> params.n;
     //~ cout << "Got n : " << params.n << endl;
     file >> params.m;
@@ -317,7 +317,8 @@ void GRASP_scheduling() {
                     }
                     if(C_max_temp[i] < C_max_min) {
                         C_max_min = C_max_temp[i];
-                    } else if (C_max_temp[i] > C_max_max) {
+                    } 
+                    if (C_max_temp[i] > C_max_max) {
                         C_max_max = C_max_temp[i];
                     }
                 }
@@ -394,8 +395,6 @@ void GRASP_scheduling() {
                     candidate_runif -= proba[r];
                 }
             }
-            
-            
             nb_operations_to_schedule--;
         }
         //CAUTION : Maintenance task have tobe given in chronological order

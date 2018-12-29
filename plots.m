@@ -1,5 +1,5 @@
 clear;
-
+close all;
 file = './output/results8x8_Cmax.out';
 ##"./output/results8x8_Wtot.out"
 ##"./output/results8x8_Wmax.out"
