@@ -1,6 +1,6 @@
 clear;
 close all;
-file = './output/results8x8_Cmax.out';
+file = './output/results15x10_Cmax.out';
 ##"./output/results8x8_Wtot.out"
 ##"./output/results8x8_Wmax.out"
 ##"./output/results8x8_Cmax.out"
@@ -39,7 +39,7 @@ for i=1:n(1)
   W = data_jobs(i,5) - data_jobs(i,4);
   H = 1;
   color = colors(data_jobs(i,1)+1,:) + 0.1*floor((data_jobs(i,1)+1)/8)*ones(1,3);
-  mod(color,1);
+  color = mod(color,1);
   rectangle('Position',[X Y W H],'FaceColor',color);
   text(X,Y+H/2, ["O_{",num2str(data_jobs(i,1)+1),",",num2str(data_jobs(i,2)+1),"}"]);
 endfor

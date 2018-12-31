@@ -225,8 +225,8 @@ void GRASP_routing()
             proba.resize(RCL.size(),0);
             //Determine the probability of selection
             for(unsigned int r=0; r<proba.size(); r++) { //r for rank
-                    proba[r]=1/(r+1);
-                    totalBias+=1/(r+1);
+                    proba[r]=1.f/((double)r+1.f);
+                    totalBias+=1.f/((double)r+1.f);
             }
             //Select a candidate
             candidate_runif = rand_gen.randDblExc(totalBias);
@@ -349,8 +349,8 @@ void GRASP_scheduling() {
             proba.resize(RCL.size(),0);
             //Determine the probability of selection
             for(unsigned int r=0; r<proba.size(); r++) { //r for rank
-                    proba[r]=1/(r+1);
-                    totalBias+=1/(r+1);
+                    proba[r]=1.f/((double)r+1.f);
+                    totalBias+=1.f/((double)r+1.f);
             }
             //Select a candidate
             candidate_runif = rand_gen.randDblExc(totalBias);
@@ -480,15 +480,23 @@ int writeOutSolution(double F_W_tot, double F_W_max, double F_C_max, string file
     return 0;
 }
 
-int main()
-{
-    read_parameters("./input/problem8x8.in");
+void doJob(string input) {
+    read_parameters(input);
     GRASP_routing();
     GRASP_scheduling();
-    writeOutSolution(1,0,0, "./output/results8x8_Wtot.out");
-    writeOutSolution(0,1,0, "./output/results8x8_Wmax.out");
-    writeOutSolution(0,0,1, "./output/results8x8_Cmax.out");
-    writeOutSolution(0.5,0.3,0.2, "./output/results8x8_F050302.out");
-    writeOutSolution(0.5,0.2,0.3, "./output/results8x8_F050203.out");
+    string prefix = string("./output/results") + to_string(params.n) + "x" + to_string(params.m);
+    writeOutSolution(1, 0, 0, prefix + "_Wtot.out");
+    writeOutSolution(0, 1, 0, prefix + "_Wmax.out");
+    writeOutSolution(0, 0, 1, prefix + "_Cmax.out");
+    writeOutSolution(0.5, 0.3, 0.2, prefix + "_F050302.out");
+    writeOutSolution(0.5, 0.2, 0.3, prefix + "_F050203.out");
+}
+
+int main()
+{
+    doJob("./input/problem8x8.in");
+    doJob("./input/problem10x10.in");
+    doJob("./input/problem15x10.in");
+    doJob("./input/problem4x5.in");
     return 0;
 }
