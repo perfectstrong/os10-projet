@@ -1,0 +1,86 @@
+FJSSP-nfa
+8
+
+8
+
+3 4 3 3 4 3 3 4
+
+1 1 1 1 1 1 1 1
+
+T T T T T F T T
+T F T T T T T T
+F T F T T T T T
+
+T T T T T F T F
+F T T T T T T T
+F T F T T T T T
+T T T T T T F F
+
+T F F T T T T T
+F T T T T T T F
+T T T T F T F T
+T T T T T T T T
+T T T T T T T T
+T T T T T T T T
+
+T T T T T F T F
+T F T T T T T F
+F T T T T T T F
+T T F T T T T T
+
+T T T T T T F T
+T F T T T T T T
+T T T T T F T F
+
+T T T T T F T F
+F T F T T T T T
+F T T T T T F T
+
+T T T T F T F T
+T T T T T F T F
+T T F T T T T T
+T F T T T T T F
+
+
+
+5 3 5 3 3 50 10 9
+10 50 5 8 3 9 9 6
+50 10 50 5 6 2 4 5
+
+5 7 3 9 8 50 9 50
+50 8 5 2 6 7 10 9
+50 10 50 5 6 4 1 7
+10 8 9 6 4 7 50 50
+
+10 50 50 7 6 5 2 4
+50 10 6 4 8 9 10 50
+1 4 5 6 50 10 50 7
+
+3 1 6 5 9 7 8 4
+12 11 7 8 10 5 6 9
+4 6 2 10 3 9 5 7
+
+3 6 7 8 9 50 10 50
+10 50 7 4 9 8 6 50
+50 9 8 7 4 2 7 50
+11 9 50 6 7 5 3 6
+
+6 7 1 4 6 9 50 10
+11 50 9 9 9 7 6 4
+10 5 9 10 11 50 10 50
+
+5 4 2 6 7 50 10 50
+50 9 50 9 11 9 10 5
+50 8 9 3 8 6 50 10
+
+2 8 5 9 50 4 50 10
+7 4 7 8 9 50 10 50
+9 9 50 8 5 6 7 1
+9 50 3 7 1 5 8 50
+
+
+
+4 3 5 3 3 5 3 4
+
+5 6 10 9 3 8 4 7
+10 9 15 17 10 16 14 13
