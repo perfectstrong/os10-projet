@@ -156,6 +156,7 @@ void initialize_x(int x[J_MAX][O_MAX])
 
 void GRASP_routing()
 {
+    double alpha=0;
     for(int t=0; t<NB_ITERS; t++) {
         //~ cout << "iteration " << t << endl;
         int nb_operations_to_assign = 0;
@@ -169,6 +170,7 @@ void GRASP_routing()
             nb_operations_to_assign += params.n_o[i];
         }
         initialize_x(solution[t].x);
+        alpha = rand_gen.randDblExc(); //NO ?
         while(nb_operations_to_assign > 0) {
             //Restreined Candidates List of processing times (will be sorted)
             vector<candidate> RCL;
@@ -178,7 +180,6 @@ void GRASP_routing()
             double W_min=numeric_limits<double>::max();
             double W_max=0;
             double range=0;
-            double alpha=0;
             double width=0;
             
             //Determine the range
@@ -198,7 +199,6 @@ void GRASP_routing()
             }
             if(nb_operations_to_assign > 1) {
                 range = W_max - W_min;
-                alpha = rand_gen.randDblExc(); //NO ?
                 width = range * alpha;
             }
             else {
@@ -252,6 +252,7 @@ void GRASP_routing()
 }
 
 void GRASP_scheduling() {
+    double alpha=0;
     for(int t=0; t<NB_ITERS; t++) {
         int current_operation[J_MAX];
         int nb_operations_to_schedule = 0;
@@ -272,6 +273,7 @@ void GRASP_scheduling() {
             nb_operations_to_schedule += params.n_o[i];
         }
         solution[t].C_max = 0;
+        alpha = rand_gen.randDblExc();
         while(nb_operations_to_schedule > 0) {
             //Restreined Candidates List of completion times (will be sorted)
             vector<candidate> RCL;
@@ -282,7 +284,6 @@ void GRASP_scheduling() {
             double C_max_min = numeric_limits<double>::max();
             double C_max_max = 0;
             double range=0;
-            double alpha=0;
             double width=0;
             //Determine the range
             for(int i=0; i<params.n; i++) { 
@@ -325,7 +326,6 @@ void GRASP_scheduling() {
             }
             if(nb_operations_to_schedule > 1) {
                range = C_max_max - C_max_min;
-               alpha = rand_gen.randDblExc();
                width = range * alpha; 
             }
             else {
