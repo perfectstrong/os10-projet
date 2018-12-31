@@ -480,15 +480,23 @@ int writeOutSolution(double F_W_tot, double F_W_max, double F_C_max, string file
     return 0;
 }
 
-int main()
-{
-    read_parameters("./input/problem8x8.in");
+void doJob(string input) {
+    read_parameters(input);
     GRASP_routing();
     GRASP_scheduling();
-    writeOutSolution(1,0,0, "./output/results8x8_Wtot.out");
-    writeOutSolution(0,1,0, "./output/results8x8_Wmax.out");
-    writeOutSolution(0,0,1, "./output/results8x8_Cmax.out");
-    writeOutSolution(0.5,0.3,0.2, "./output/results8x8_F050302.out");
-    writeOutSolution(0.5,0.2,0.3, "./output/results8x8_F050203.out");
+    string prefix = string("./output/results") + to_string(params.n) + "x" + to_string(params.m);
+    writeOutSolution(1, 0, 0, prefix + "_Wtot.out");
+    writeOutSolution(0, 1, 0, prefix + "_Wmax.out");
+    writeOutSolution(0, 0, 1, prefix + "_Cmax.out");
+    writeOutSolution(0.5, 0.3, 0.2, prefix + "_F050302.out");
+    writeOutSolution(0.5, 0.2, 0.3, prefix + "_F050203.out");
+}
+
+int main()
+{
+    cout << "Input=";
+    string input;
+    getline(cin, input);
+    doJob(input);
     return 0;
 }
