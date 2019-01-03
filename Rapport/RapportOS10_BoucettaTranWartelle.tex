@@ -1,0 +1,239 @@
+\documentclass[10pt,a4paper]{scrartcl}
+\setkomafont{disposition}{\normalfont\bfseries}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{mathrsfs}
+\usepackage{url}
+\usepackage{color}
+\usepackage{listings}
+\definecolor{mygreen}{RGB}{28,172,0} % color values Red, Green, Blue
+\definecolor{mylilas}{RGB}{170,55,241}
+\lstset{
+language=R,
+basicstyle=\scriptsize\ttfamily,
+commentstyle=\ttfamily\color{green},
+numbers=left,
+numberstyle=\ttfamily\color{black}\footnotesize,
+stepnumber=1,
+numbersep=5pt,
+backgroundcolor=\color{white},
+showspaces=false,
+showstringspaces=false,
+showtabs=false,
+frame=single,
+tabsize=2,
+captionpos=b,
+breaklines=true,
+breakatwhitespace=false,
+keywordstyle=\color{blue},
+stringstyle=\color{magenta},
+literate=
+  {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+  {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+  {à}{{\`a}}1 {è}{{\`e}}1 {ì}{{\`i}}1 {ò}{{\`o}}1 {ù}{{\`u}}1
+  {À}{{\`A}}1 {È}{{\'E}}1 {Ì}{{\`I}}1 {Ò}{{\`O}}1 {Ù}{{\`U}}1
+  {ä}{{\"a}}1 {ë}{{\"e}}1 {ï}{{\"i}}1 {ö}{{\"o}}1 {ü}{{\"u}}1
+  {Ä}{{\"A}}1 {Ë}{{\"E}}1 {Ï}{{\"I}}1 {Ö}{{\"O}}1 {Ü}{{\"U}}1
+  {â}{{\^a}}1 {ê}{{\^e}}1 {î}{{\^i}}1 {ô}{{\^o}}1 {û}{{\^u}}1
+  {Â}{{\^A}}1 {Ê}{{\^E}}1 {Î}{{\^I}}1 {Ô}{{\^O}}1 {Û}{{\^U}}1
+  {œ}{{\oe}}1 {Œ}{{\OE}}1 {æ}{{\ae}}1 {Æ}{{\AE}}1 {ß}{{\ss}}1
+  {ű}{{\H{u}}}1 {Ű}{{\H{U}}}1 {ő}{{\H{o}}}1 {Ő}{{\H{O}}}1
+  {ç}{{\c c}}1 {Ç}{{\c C}}1 {ø}{{\o}}1 {å}{{\r a}}1 {Å}{{\r A}}1
+  {€}{{\EUR}}1 {£}{{\pounds}}1
+}
+
+\lstset{language=Matlab,%
+%basicstyle=\color{red},
+breaklines=true,%
+morekeywords={matlab2tikz},
+keywordstyle=\color{blue},%
+morekeywords=[2]{1}, keywordstyle=[2]{\color{black}},
+identifierstyle=\color{black},%
+stringstyle=\color{mylilas},
+commentstyle=\color{mygreen},%
+showstringspaces=false,%without this there will be a symbol in the places where there is a space
+numbers=left,%
+numberstyle={\tiny \color{black}},% size of the numbers
+numbersep=9pt, % this defines how far the numbers are from the text
+emph=[1]{for,end,break},emphstyle=[1]\color{red}, %some words to emphasise
+%emph=[2]{word1,word2}, emphstyle=[2]{style},    
+}
+\lstset{literate=
+{á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+{Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+{à}{{\`a}}1 {è}{{\`e}}1 {ì}{{\`i}}1 {ò}{{\`o}}1 {ù}{{\`u}}1
+{À}{{\`A}}1 {È}{{\'E}}1 {Ì}{{\`I}}1 {Ò}{{\`O}}1 {Ù}{{\`U}}1
+{ä}{{\"a}}1 {ë}{{\"e}}1 {ï}{{\"i}}1 {ö}{{\"o}}1 {ü}{{\"u}}1
+{Ä}{{\"A}}1 {Ë}{{\"E}}1 {Ï}{{\"I}}1 {Ö}{{\"O}}1 {Ü}{{\"U}}1
+{â}{{\^a}}1 {ê}{{\^e}}1 {î}{{\^i}}1 {ô}{{\^o}}1 {û}{{\^u}}1
+{Â}{{\^A}}1 {Ê}{{\^E}}1 {Î}{{\^I}}1 {Ô}{{\^O}}1 {Û}{{\^U}}1
+{œ}{{\oe}}1 {Œ}{{\OE}}1 {æ}{{\ae}}1 {Æ}{{\AE}}1 {ß}{{\ss}}1
+{ű}{{\H{u}}}1 {Ű}{{\H{U}}}1 {ő}{{\H{o}}}1 {Ő}{{\H{O}}}1
+{ç}{{\c c}}1 {Ç}{{\c C}}1 {ø}{{\o}}1 {å}{{\r a}}1 {Å}{{\r A}}1
+{€}{{\euro}}1 {£}{{\pounds}}1 {«}{{\guillemotleft}}1
+{»}{{\guillemotright}}1 {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {¿}{{?`}}1
+}
+\usepackage[french,onelanguage,ruled,lined,linesnumbered]{algorithm2e}
+\SetKw{And}{et}
+\SetKw{From}{allant de}
+\author{\textsc{BOUCETTA I.} \& \textsc{TRAN Q.N.H.} \& \textsc{WARTELLE A.}}
+\title{Rapport de projet OS10}
+\subtitle{Etude de l'algorithme GRASP pour le problème d'ordonnancement FJSSP-nfa}
+\date{\today}
+
+\begin{document}
+\maketitle
+\renewcommand{\contentsname}{Sommaire}
+\tableofcontents
+\clearpage
+
+\begin{abstract}
+Ce travail a pour objectif d'étudier l'article de 2010 de Rajkumar, Muthukannan \& Asokan, P \& Vamsikrishna, V.
+portant sur un algorithme de recherche locale randomisée : \emph{Greedy Randomized Adaptive Search Procedure} (GRASP),
+dans le cadre d'un problème de job shop : le \emph{Flexible Job Shop Scheduling Problem with non fixed-availability constraints}
+(FJSSP-nfa) \cite{GRASP}. 
+Cette extension du problème du job shop permet de prendre en compte deux aspects importants de la production :
+\begin{enumerate}
+\item la flexibilité des machines pour effectuer des opérations, c'est-à-dire qu'une opération n'aura pas une machine
+prédéfinie à l'avance pour son exécution, on aura en effet le choix entre plusieurs machines avec différents temps
+d'exécution associés. Cette diversité des temps d'exécution est en général lié au temps de préparation d'une
+pour le traitement d'une opération donnée mais surtout à la performance et à l'adéquation de la machine
+pour exécuter une telle tâche
+\item la prise en compte de tâches de maintenance à effectuer dans des fenêtres de temps données (non fixité). En effet
+les machines ont besoin d'être entretenues afin d'éviter (si possible) des pannes ou des défaillances. Durant une
+tâche de maintenance, une machine est indisponible est ne peut pas traiter d'opération, ce qui impacte fortement
+les performances d'une affectation d'opérations et d'ordonnancement de celles-ci.
+\end{enumerate}
+Avec la prise en compte de la flexibilité des machines, le FJSSP-nfa permet de travailler sur de nouveaux
+critères portant de la charge de travail, c'est à dire sur le temps d'utilisation de chaque machine qui
+n'est plus fixé comme dans le cas d'un CJSSP. Ainsi le FJSSP-nfa est un problème multi-critère portant
+sur la charge de travail totale et maximal des machines et sur le makespan de l'ordonnancement (temps
+de complétion maximale).
+Enfin le problème de job shop classique étant déjà NP-difficile, le FJSSP-nfa l'est aussi.
+De plus, avec les difficultés rajoutées par la flexibilité des machines et la maintenance,
+une approche de résolution par méthode exacte est semble presque inenvisageable\footnote{d'après \cite{GA1},
+les méthodes exactes par graphes disjonctifs sont actuellement limités à 20 jobs et 10 machines pour
+le FJSSP (sans maintenance)}. Ainsi ce sont les heuristiques comme l'algorithme GRASP (\cite{GRASP}) 
+et les méta-heuristiques comme les algorithmes génétiques(\cite{GA1},\cite{GA2}) qui ont rencontré le plus de succès.
+
+\end{abstract}
+
+\section{Introduction}
+
+Avec la notation de Graham, ce problème peut s'écrire sous la forme : 
+\[J_{m}|flexibility,nfa|W_{tot},W_{max},C_{max}\].
+On ainsi un ensemble de job i
+Une solution à ce problème doit indiquer les affectations de chaque opération à une machine ainsi
+que les les temps de complétions (ou de début) de chaque opération
+et de chaque tâche de maintenance (et de chaque job et chaque machine).
+En eff
+%Il s'agit d'une extension FJSSP avec des contraintes de tâches de maintenance à exécuter sur une fenêtre de temps
+%pour chaque machine.
+%Le FJSSP est lui-même une extension du problème de job shop classique (CJSSP) où les opérations des jobs peuvent être
+%exécutés, de manière non-préemptive et ordonnée, sur différentes machines. Ainsi, pour transformer un FJSSP en un
+%CJSSP, il faut affecter une machine à chaque opération \footnote{il s'agit d'un  
+%\emph{Operation Machine Affectation Problem (OMAP)}} de telle sorte à minimiser
+%la charge (temps d'occupation par les opérations et les tâches de maintenances) totale de chaque machine $W_{tot}$
+%et la charge maximale $W_{tot}$.
+%Ce problème d'affectation peut-être résolu de 2 manières avec le problème d'ordonnancement :
+%\begin{enumerate}
+%\item de manière hiérarchique en résolvant d'abord le problème d'affectation
+%\item de manière conjointe avec une approche intégrée
+%\end{enumerate}
+%  ou de manière h
+%
+%\begin{algorithm}[H]
+%    \caption{Algorithme PPI : Plus proche insertion}
+%    
+%    \tcp{Déclaration et Initialisation}
+%     $C_{min}$ : Coût minimal d'insertion
+%     
+%     $D_{min} \leftarrow +\infty$ : Distance minimale au circuit
+%     
+%     $\forall i=1...n,D_{tour}^{i} \leftarrow +\infty$, : Distances des nœuds encore à insérer au circuit
+%     
+%     $B$ : Nœud sélectionné à insérer (B pour "Best")
+%     
+%     $A \leftarrow 0$ : Nœud d'insertion de coût minimal (A avant B, ou B voisin de A)
+%     
+%    \tcp{Recherche du ième point du point à ajouter au chemin actuel}
+%    \For{$i$ \From $1$ \KwTo $N$}{
+%    
+%        \tcp{Réinitialiser le coût et la distance minimales}
+%        $C_{min} \leftarrow +\infty$
+%        
+%        $D_{min} \leftarrow +\infty$
+%        
+%        \tcp{Recherche parmi les nœuds qui ne sont pas encore dans le circuit}
+%        \For{$j$ \From $1$ \KwTo $N$}{
+%            \If{$j \notin circuit$}{
+%            Recalculer la distance $D_{tour}^{j}$ du nœud j au circuit en prenant en compte le (i-1)-ème nœud ajouté (nœud $i-1$ du circuit)
+%            
+%            Mise à jour de la distance minimale : $D_{min} \leftarrow min(D(B,node(i-1)) ,D(j,node(i-1)))$
+%           
+%            
+%            Mise à jour du meilleur nœud à ajouter : $B \leftarrow arg1min(D(B,node(i-1)) ,D(j,node(i-1)))$  \footnote{node(i-1) est l'index du (i-1)-ème nœud ajouté au circuit et D(,) est la distance entre deux nœuds}
+%             }
+%            
+%	        \If{$j \in circuit$}{
+%	        Calculer le coût d'ajout $C_{j}$ de B après le nœud j  dans le circuit
+%	        
+%	        
+%	        Mise à jour du coût (minimal) de meilleure insertion : $C_{min} \leftarrow min(C_{A},C_{j})$
+%	        
+%	        Mise à jour du nœud (prédécesseur) de meilleure insertion : $A \leftarrow argmin(C_{A},C_{j})$
+%	        }
+%        }
+%        Ajouter le nœud B à la suite du nœud A dans le circuit.
+%    }
+%\end{algorithm}
+
+\section{Résultats et comparaisons}
+%
+%\begin{figure}[!ht]
+%    \centering
+%    \includegraphics[width=0.8\linewidth]{img/PPI1.png}
+%    \caption{Chemin de l'algorithme PPI}
+%    \label{PPI1}
+%\end{figure}
+
+
+\section{Annexes}
+
+\subsection{Visualisation de tournées (plots.m)}
+
+%\lstinputlisting[language=Matlab]{plots.m}
+
+\subsection{Visualisation de statistiques (stats.R)}
+%\lstinputlisting[language=R]{stats.R}
+
+\begin{thebibliography}{1}
+\addcontentsline{toc}{section}{Références}
+\bibitem{GRASP}
+   Rajkumar, Muthukannan \& Asokan, P \& Vamsikrishna, V. (2010),
+   \emph{A GRASP algorithm for flexible job-shop scheduling with maintenance constraints},
+    International Journal of Production Research - INT J PROD RES. 48. 6821-6836. 10.1080/00207540903308969. 
+
+\bibitem{GA1}
+	F. Pezzella, G. Morganti, G. Ciaschetti,
+	\emph{A genetic algorithm for the Flexible Job-shop Scheduling Problem},
+	Computers \& Operations Research,
+	Volume 35, Issue 10,
+	2008,
+	Pages 3202-3212,
+	ISSN 0305-0548,
+	https://doi.org/10.1016/j.cor.2007.02.014.
+	(http://www.sciencedirect.com/science/article/pii/S0305054807000524)
+	
+\bibitem{GA2}	
+	T. S. Chan, F \& Wong, T. C. \& Chan, LY. (2006). 
+	\emph{Flexible job-shop scheduling problem under resource constraints}, 
+	International Journal of Production Research - INT J PROD RES. 44. 2071-2089. 10.1080/00207540500386012. 
+\end{thebibliography}
+\end{document}
