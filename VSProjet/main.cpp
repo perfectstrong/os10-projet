@@ -57,6 +57,7 @@ struct candidate {
 static MTRand rand_gen(SEED);
 static Parameters params;
 static Solution solution[NB_ITERS]; //indexed by t
+static bool parentoFront[NB_ITERS]; // FALSE = dominated
 
 bool comparisonCandidates(const candidate& candidate1, const candidate& candidate2) {
     if (candidate1.obj_value < candidate2.obj_value) {
@@ -77,11 +78,12 @@ bool comparisonCandidates(const candidate& candidate1, const candidate& candidat
     return false;
 }
 
-int read_parameters(string filename) {
+void read_parameters(string filename) {
     ifstream file(filename);
     if (file.fail()) {
         cout << "Error reading : file \" " << filename << " \" not found" << endl;
-        return 1;
+        getchar();
+        exit(1);
     }
     string word;
     file >> word;
@@ -138,7 +140,6 @@ int read_parameters(string filename) {
             //~ cout << "Got t_l["<<j<<"]["<<l<<"] : " << params.t_l[j][l] << endl;
         }
     }
-    return 0;
 }
 
 void initialize_x(int x[J_MAX][O_MAX]) {
@@ -439,7 +440,7 @@ int getBestSolution(double F_W_tot, double F_W_max, double F_C_max) {
     return t_best;
 }
 
-int writeOutSolution(double F_W_tot, double F_W_max, double F_C_max, string filename) {
+void writeOutSolution(double F_W_tot, double F_W_max, double F_C_max, string filename) {
     //Declaration
     int t = getBestSolution(F_W_tot, F_W_max, F_C_max);
     double OFV = F_W_tot * solution[t].W_tot + F_W_max * solution[t].W_max
@@ -449,7 +450,8 @@ int writeOutSolution(double F_W_tot, double F_W_max, double F_C_max, string file
     ofstream file(filename);
     if (file.fail()) {
         cout << "Error writing : file \" " << filename << " \" not found" << endl;
-        return 1;
+        getchar();
+        exit(1);
     }
     //init
     for (int i = 0; i < params.n; i++) {
@@ -478,7 +480,44 @@ int writeOutSolution(double F_W_tot, double F_W_max, double F_C_max, string file
             file << solution[t].y[j][l] << endl;
         }
     }
-    return 0;
+}
+
+bool dominate(Solution s1, Solution s2) {
+    // Check if s1 dominates s2
+    if (s1.C_max < s2.C_max) return false;
+    if (s1.W_max < s2.W_max) return false;
+    if (s1.W_tot < s2.W_tot) return false;
+    if (s1.C_max == s2.C_max
+        && s1.W_max == s2.W_max
+        && s1.W_tot == s2.W_tot)
+        return false;
+    return true;
+}
+
+void writeOutParentoFront(string output) {
+    ofstream f(output);
+    if (f.fail()) {
+        cout << "Error writing : file \" " << output << " \" not found" << endl;
+        getchar();
+        exit(1);
+    }
+    // Brutal check indomination
+    for (int i = 0; i < NB_ITERS; i++) {
+        parentoFront[i] = true;
+        for (int j = 0; j < NB_ITERS; j++) {
+            if (j == i) continue;
+            if (dominate(solution[j], solution[i])) {
+                // If solution[j] dominates solution[i]
+                parentoFront[i] = false;
+                break;
+            }
+        }
+        if (parentoFront[i]) {
+            // Write
+            f << solution[i].W_tot << " " << solution[i].W_max << " "
+                << solution[i].C_max << "\n";
+        }
+    }
 }
 
 void doJob(string input) {
@@ -491,6 +530,7 @@ void doJob(string input) {
     writeOutSolution(0, 0, 1, prefix + "_Cmax.out");
     writeOutSolution(0.5, 0.3, 0.2, prefix + "_F050302.out");
     writeOutSolution(0.5, 0.2, 0.3, prefix + "_F050203.out");
+    writeOutParentoFront(prefix + "_ParentoFront.out");
 }
 
 int main() {
