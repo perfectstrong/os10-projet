@@ -484,14 +484,18 @@ void writeOutSolution(double F_W_tot, double F_W_max, double F_C_max, string fil
 
 bool dominate(Solution s1, Solution s2) {
     // Check if s1 dominates s2
-    if (s1.C_max < s2.C_max) return false;
-    if (s1.W_max < s2.W_max) return false;
-    if (s1.W_tot < s2.W_tot) return false;
-    if (s1.C_max == s2.C_max
+    return (s1.C_max <= s2.C_max
+        && s1.W_max <= s2.W_max
+        && s1.W_tot <= s2.W_tot
+        && (s1.C_max < s2.C_max
+            || s1.W_max < s2.W_max
+            || s1.W_tot < s2.W_tot));
+}
+
+bool idem(Solution s1, Solution s2) {
+    return s1.C_max == s2.C_max
         && s1.W_max == s2.W_max
-        && s1.W_tot == s2.W_tot)
-        return false;
-    return true;
+        && s1.W_tot == s2.W_tot;
 }
 
 void writeOutParentoFront(string output) {
@@ -506,6 +510,11 @@ void writeOutParentoFront(string output) {
         parentoFront[i] = true;
         for (int j = 0; j < NB_ITERS; j++) {
             if (j == i) continue;
+            if (idem(solution[j], solution[i])
+                && parentoFront[j]) {
+                parentoFront[i] = false;
+                break;
+            }
             if (dominate(solution[j], solution[i])) {
                 // If solution[j] dominates solution[i]
                 parentoFront[i] = false;
