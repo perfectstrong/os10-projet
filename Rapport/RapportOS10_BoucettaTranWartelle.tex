@@ -11,6 +11,8 @@
 \usepackage{mathrsfs}
 \usepackage{url}
 \usepackage{color}
+\usepackage{hyperref}
+\usepackage{cleveref}
 \usepackage{listings}
 \definecolor{mygreen}{RGB}{28,172,0} % color values Red, Green, Blue
 \definecolor{mylilas}{RGB}{170,55,241}
@@ -202,7 +204,80 @@ En eff
 %    \caption{Chemin de l'algorithme PPI}
 %    \label{PPI1}
 %\end{figure}
+\subsection{Spécification de l'ordinateur}
+Nous tournons le code sur un ordinateur portable de processeur Intel(R) Core(TM) i7-7700HQ CPU\@2.8GHz (8 CPUs), 8 Go de RAM. Le programme est compilé par Visual Studio Code 2017. Le générateur choisi est \texttt{MersenneTwister.h} (v1.0, 15/05/2003).
 
+\subsection{Résultats et comparaisons avec ceux de l'article}
+Nous réalisons $1000$ solutions (itérations) séquentiellement parmi lesquelles nous choissions les meilleurs corresponsdant au triplet voulu.
+\begin{table}[!h]
+  \centering
+  \begin{tabular}{|c|c|c|}
+    \hline
+    Critères & Valeurs de l'article & Nos valeurs \\
+    \hline
+    $W_t$ & 103 & 103 \\
+    $W_{max}$ & 16 & 15 \\
+    $C_{max}$ & 18 & 13 \\
+    $F(0,5;0.3;0.2)$ & 59.9 & 60.1 \\
+    $F(0,5;0.2;0.3)$ & 60.1 & 60.4 \\
+    \hline
+  \end{tabular}
+  \caption{Résultat pour problème $8 \times 8$}
+\end{table}
+
+\begin{table}[!h]
+  \centering
+  \begin{tabular}{|c|c|c|}
+    \hline
+    Critères & Valeurs de l'article & Nos valeurs \\
+    \hline
+    $W_t$ & 60 & 60 \\
+    $W_{max}$ & 7 & 8 \\
+    $C_{max}$ & 9 & 11 \\
+    $F(0,5;0.3;0.2)$ & 33.9 & 35.4 \\
+    $F(0,5;0.2;0.3)$ & 34.1 & 35.6 \\
+    \hline
+  \end{tabular}
+  \caption{Résultat pour problème $10 \times 10$}
+\end{table}
+
+\begin{table}[!h]
+  \centering
+  \begin{tabular}{|c|c|c|}
+    \hline
+    Critères & Valeurs de l'article & Nos valeurs \\
+    \hline
+    $W_t$ & 107 & 98 \\
+    $W_{max}$ & 13 & 14 \\
+    $C_{max}$ & 16 & 20 \\
+    $F(0,5;0.3;0.2)$ & 60.3 & 57.2 \\
+    $F(0,5;0.2;0.3)$ & 60.9 & 57.8 \\
+    \hline
+  \end{tabular}
+  \caption{Résultat pour problème $15 \times 10$}
+\end{table}
+
+\begin{table}[!h]
+  \centering
+  \begin{tabular}{|c|c|c|}
+    \hline
+    Critères & Valeurs de l'article & Nos valeurs \\
+    \hline
+    $W_t$ & 40 & 40 \\
+    $W_{max}$ & 9 & 9 \\
+    $C_{max}$ & 16 & 13 \\
+    $F(0,5;0.3;0.2)$ & 25.9 & 26 \\
+    $F(0,5;0.2;0.3)$ & 26.6 & 26.5 \\
+    \hline
+  \end{tabular}
+  \caption{Résultat pour problème $4 \times 5$}
+\end{table}
+
+Nos valeurs sont très proche celles trouvées dans l'articles, particulièrement certaines sont meilleures, signifiant la reproductivité facile de l'algorithme. Son application aura peu de dépendance de l'ordinateur de planification au niveau de résultat.
+
+D'autre part, au niveau de temps d'exécution, qui joue un rôle important de chaque algorithme, quoique nous ne les précisons pas ici, leurs déroulement ne prennent pas plus de \emph{3 seconds}. Autrement dit, l'algorithme GRASP est efficace contre le problème de type FJSSP-nfa.
+
+Les ordonnancements finaux pour chaque problème exemplaire sont inclus dans l'annexe \eqref{annexe:visual_ordo}.
 
 \section{Annexes}
 
@@ -213,6 +288,10 @@ En eff
 \subsection{Visualisation de statistiques (stats.R)}
 %\lstinputlisting[language=R]{stats.R}
 
+\subsection{Visualisation des ordonnacements}
+\subsubsection{Problème $8 \times 8$}
+
+\label{annexe:visual_ordo}
 \begin{thebibliography}{1}
 \addcontentsline{toc}{section}{Références}
 \bibitem{GRASP}
