@@ -195,7 +195,32 @@ En eff
 %        Ajouter le nœud B à la suite du nœud A dans le circuit.
 %    }
 %\end{algorithm}
-
+\begin{algorithm}
+  \caption{Assigner les opérations aux machines (\emph{routing})}
+  \tcp{Initialisation}
+  $t$ le nombre de solutions\;
+  $A = \{\alpha_1, \alpha_2,..., \alpha_t\}$ l'ensemble des valeurs $\alpha$ discrètes aléatoires telle que $0 \leq \alpha_i \leq 1 \, \forall i = \overline{1,t}$\;
+  $S = \{s_1, s_2,..., s_t\}$ l'ensemble des solutions à construire\;
+  \tcp{Assignement}
+  \ForEach{$\alpha_i \in A$}{
+    $\sigma$ l'ensemble des opérations non assignées\;
+    $s_i$ la solution à construire\;
+    $s_i \leftarrow \emptyset$\;
+    \While{$\sigma \neq \emptyset$}{
+      Chercher $o_M$ l'opération dont le processing time est le plus longue\;
+      Chercher $o_m$ l'opréation dont le processing time est le plus court\;
+      $Range \leftarrow p_{o_M} - p_{o_m}$\;
+      $Width \leftarrow Range * \alpha_i$\;
+      Construire RCL l'ensemble des opérations non assignées $o \in \sigma$ telle que $p_{o_m} \leq p_o \leq p_{o_m} + Width$\;
+      Ordonner RCL dans l'ordre croissant de processing time\;
+      Pondérer les éléments de RCL par la fonction linéaire $\frac{1}{r}$ où $r$ est l'ordre de l'élément\;
+      Choisir de manière aléatoire un élément $o^*$ de RCL en tenant compte des pois ci-dessus\;
+      $s_i \leftarrow s_i \cup o^*$\;
+      $\sigma \leftarrow \sigma \backslash o^*$\;
+    }
+    Calculer la charge totale de $s_i$\;
+  }
+\end{algorithm}
 \section{Résultats et comparaisons}
 %
 %\begin{figure}[!ht]
@@ -218,8 +243,8 @@ Nous réalisons $1000$ solutions (itérations) séquentiellement parmi lesquelle
     $W_t$ & 103 & 103 \\
     $W_{max}$ & 16 & 15 \\
     $C_{max}$ & 18 & 13 \\
-    $F(0,5;0.3;0.2)$ & 59.9 & 60.1 \\
-    $F(0,5;0.2;0.3)$ & 60.1 & 60.4 \\
+    $F(0.5;0.3;0.2)$ & 59.9 & 60.1 \\
+    $F(0.5;0.2;0.3)$ & 60.1 & 60.4 \\
     \hline
   \end{tabular}
   \caption{Résultat pour problème $8 \times 8$}
@@ -234,8 +259,8 @@ Nous réalisons $1000$ solutions (itérations) séquentiellement parmi lesquelle
     $W_t$ & 60 & 60 \\
     $W_{max}$ & 7 & 8 \\
     $C_{max}$ & 9 & 11 \\
-    $F(0,5;0.3;0.2)$ & 33.9 & 35.4 \\
-    $F(0,5;0.2;0.3)$ & 34.1 & 35.6 \\
+    $F(0.5;0.3;0.2)$ & 33.9 & 35.4 \\
+    $F(0.5;0.2;0.3)$ & 34.1 & 35.6 \\
     \hline
   \end{tabular}
   \caption{Résultat pour problème $10 \times 10$}
@@ -250,8 +275,8 @@ Nous réalisons $1000$ solutions (itérations) séquentiellement parmi lesquelle
     $W_t$ & 107 & 98 \\
     $W_{max}$ & 13 & 14 \\
     $C_{max}$ & 16 & 20 \\
-    $F(0,5;0.3;0.2)$ & 60.3 & 57.2 \\
-    $F(0,5;0.2;0.3)$ & 60.9 & 57.8 \\
+    $F(0.5;0.3;0.2)$ & 60.3 & 57.2 \\
+    $F(0.5;0.2;0.3)$ & 60.9 & 57.8 \\
     \hline
   \end{tabular}
   \caption{Résultat pour problème $15 \times 10$}
@@ -266,8 +291,8 @@ Nous réalisons $1000$ solutions (itérations) séquentiellement parmi lesquelle
     $W_t$ & 40 & 40 \\
     $W_{max}$ & 9 & 9 \\
     $C_{max}$ & 16 & 13 \\
-    $F(0,5;0.3;0.2)$ & 25.9 & 26 \\
-    $F(0,5;0.2;0.3)$ & 26.6 & 26.5 \\
+    $F(0.5;0.3;0.2)$ & 25.9 & 26 \\
+    $F(0.5;0.2;0.3)$ & 26.6 & 26.5 \\
     \hline
   \end{tabular}
   \caption{Résultat pour problème $4 \times 5$}
@@ -275,7 +300,23 @@ Nous réalisons $1000$ solutions (itérations) séquentiellement parmi lesquelle
 
 Nos valeurs sont très proche celles trouvées dans l'articles, particulièrement certaines sont meilleures, signifiant la reproductivité facile de l'algorithme. Son application aura peu de dépendance de l'ordinateur de planification au niveau de résultat.
 
-D'autre part, au niveau de temps d'exécution, qui joue un rôle important de chaque algorithme, quoique nous ne les précisons pas ici, leurs déroulement ne prennent pas plus de \emph{3 seconds}. Autrement dit, l'algorithme GRASP est efficace contre le problème de type FJSSP-nfa.
+D'autre part, au niveau de temps d'exécution, qui joue un rôle important de chaque algorithme, leurs déroulement ne prennent pas plus de \emph{2 seconds} (figure \eqref{tab:temps_exec}). Autrement dit, l'algorithme GRASP est efficace contre le problème de type FJSSP-nfa.
+
+\begin{table}[!h]
+  \centering
+  \begin{tabular}{|c|c|c|}
+    \hline
+    Problème & Temps d'exécution (ms) \\
+    \hline
+    $4 \times 5$ & 28.6767 \\
+    $8 \times 8$ & 150.71 \\
+    $10 \times 10$ & 427.403 \\
+    $15 \times 10$ & 1661.43 \\
+    \hline
+  \end{tabular}
+  \caption{Temps d'exécution de chaque problème exemplaire}
+  \label{tab:temps_exec}
+\end{table}
 
 Les ordonnancements finaux pour chaque problème exemplaire sont inclus dans l'annexe \eqref{annexe:visual_ordo}.
 
