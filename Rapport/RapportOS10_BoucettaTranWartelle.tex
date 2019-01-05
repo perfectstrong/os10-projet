@@ -208,6 +208,7 @@ En eff
     $s_i$ la solution à construire\;
     $s_i \leftarrow \emptyset$\;
     \While{$\sigma \neq \emptyset$}{
+      \tcp{Le processing time dépend de machine de traitement}
       Chercher $o_M$ l'opération dont le processing time est le plus longue\;
       Chercher $o_m$ l'opréation dont le processing time est le plus court\;
       $Range \leftarrow p_{o_M} - p_{o_m}$\;
@@ -236,6 +237,7 @@ En eff
     $s_i$ la solution à ordonner\;
     $s_i \leftarrow \emptyset$\;
     \While{$\sigma \neq \emptyset$}{
+      \tcp{Le processing time dépend de machine de traitement}
       Chercher $o_M$ l'opération dont le processing time est le plus longue; et $o_m$ l'opréation dont le processing time est le plus court en tenant compte les maintenances qui doivent être situées au milieu des intervalles donnés $\left[t_{jl}^E, t_{jl}^L\right]$ \;
       $Range \leftarrow p_{o_M} - p_{o_m}$\;
       $Width \leftarrow 1 + Range * \alpha_i$\;
