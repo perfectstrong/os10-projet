@@ -6,8 +6,11 @@
 #include <fstream>
 #include <limits>
 #include "MersenneTwister.h"
+#include <ctime>
+#include <chrono>
 
 using namespace std;
+using namespace std::chrono;
 
 #define MAX_TIME 1000
 #define J_MAX 100 //MAX number of jobs
@@ -58,6 +61,10 @@ static MTRand rand_gen(SEED);
 static Parameters params;
 static Solution solution[NB_ITERS]; //indexed by t
 static bool parentoFront[NB_ITERS]; // FALSE = dominated
+
+high_resolution_clock::time_point now() {
+    return high_resolution_clock::now();
+}
 
 bool comparisonCandidates(const candidate& candidate1, const candidate& candidate2) {
     if (candidate1.obj_value < candidate2.obj_value) {
@@ -531,8 +538,12 @@ void writeOutParentoFront(string output) {
 
 void doJob(string input) {
     read_parameters(input);
+    high_resolution_clock::time_point start, finish;
+    duration<double, std::milli> timespan;
+    start = now();
     GRASP_routing();
     GRASP_scheduling();
+    finish = now();
     string prefix = string("./output/results") + to_string(params.n) + "x" + to_string(params.m);
     writeOutSolution(1, 0, 0, prefix + "_Wtot.out");
     writeOutSolution(0, 1, 0, prefix + "_Wmax.out");
@@ -540,6 +551,9 @@ void doJob(string input) {
     writeOutSolution(0.5, 0.3, 0.2, prefix + "_F050302.out");
     writeOutSolution(0.5, 0.2, 0.3, prefix + "_F050203.out");
     writeOutParentoFront(prefix + "_ParentoFront.out");
+    timespan = finish - start;
+    cout << "Execution time = " << timespan.count() << " ms\n";
+    getchar();
 }
 
 int main() {
