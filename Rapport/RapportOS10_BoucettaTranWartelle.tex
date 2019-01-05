@@ -197,6 +197,7 @@ En eff
 %\end{algorithm}
 \begin{algorithm}
   \caption{Assigner les opérations aux machines (\emph{routing})}
+  \label{algo:routing}
   \tcp{Initialisation}
   $t$ le nombre de solutions\;
   $A = \{\alpha_1, \alpha_2,..., \alpha_t\}$ l'ensemble des valeurs $\alpha$ discrètes aléatoires telle que $0 \leq \alpha_i \leq 1 \, \forall i = \overline{1,t}$\;
@@ -221,6 +222,35 @@ En eff
     Calculer la charge totale de $s_i$\;
   }
 \end{algorithm}
+
+\begin{algorithm}
+  \caption{Ordonner les opérations et les maintenances sur les machines (\emph{scheduling})}
+  \label{algo:scheduling}
+  \tcp{Initialisation}
+  $t$ le nombre de solutions (fixé à l'algorithme \eqref{algo:routing}) \;
+  $A = \{\alpha_1, \alpha_2,..., \alpha_t\}$ l'ensemble des valeurs $\alpha$ discrètes aléatoires telle que $0 \leq \alpha_i \leq 1 \, \forall i = \overline{1,t}$ (pas forcément identique à l'algorithme \eqref{algo:routing})\;
+  $S = \{s_1, s_2,..., s_t\}$ l'ensemble des solutions à construire\;
+  \tcp{Ordonnancement}
+  \ForEach{$\alpha_i \in A$}{
+    $\sigma$ l'ensemble des opérations non ordonnées\;
+    $s_i$ la solution à ordonner\;
+    $s_i \leftarrow \emptyset$\;
+    \While{$\sigma \neq \emptyset$}{
+      Chercher $o_M$ l'opération dont le processing time est le plus longue; et $o_m$ l'opréation dont le processing time est le plus court en tenant compte les maintenances qui doivent être situées au milieu des intervalles donnés $\left[t_{jl}^E, t_{jl}^L\right]$ \;
+      $Range \leftarrow p_{o_M} - p_{o_m}$\;
+      $Width \leftarrow 1 + Range * \alpha_i$\;
+      Construire RCL l'ensemble des opérations non assignées $o \in \sigma$ telle que $p_{o_m} \leq p_o \leq p_{o_m} + Width$\;
+      Ordonner RCL dans l'ordre croissant de processing time\;
+      Pondérer les éléments de RCL par la fonction linéaire $\frac{1}{r}$ où $r$ est l'ordre de l'élément\;
+      Choisir de manière aléatoire un élément $o^*$ de RCL en tenant compte des pois ci-dessus\;
+      Ordonner $o^*$ en tenant compte la date de disponibilité la plus tôte et les maintenances\;
+      $\sigma \leftarrow \sigma \backslash o^*$\;
+    }
+    Ordonner les maintenances au milieu des intervalles donnés $\left[t_{jl}^E, t_{jl}^L\right]$ sans collision avec les opérations scédulées\;
+    Calculer le makespan de $s_i$\;
+  }
+\end{algorithm}
+
 \section{Résultats et comparaisons}
 %
 %\begin{figure}[!ht]
