@@ -215,7 +215,7 @@ qui minimise la fonction objective $W_1*W_{tot}+W_2*W_{max}+W_3*C_{max}$.
     $s_i \leftarrow \emptyset$\;
     \While{$\sigma \neq \emptyset$}{
       \tcp{Le processing time dépend de machine de traitement}
-      Chercher $o_{Max}$ l'opération qui augmente le plus $C_max$ (de $s_{i}$); et $o_{min}$ l'opération qui augmente le moins $C_max$ en tenant compte les maintenances dont les temps de complétion doivent se situer dans les intervalles donnés $\left[t_{jl}^E, t_{jl}^L\right]$ \;
+      Chercher $o_{Max}$ l'opération qui augmente le plus $C_{max}$ (de $s_{i}$); et $o_{min}$ l'opération qui augmente le moins $C_{max}$ en tenant compte les maintenances dont les temps de complétion doivent se situer dans les intervalles donnés $\left[t_{jl}^E, t_{jl}^L\right]$ \;
       $Range \leftarrow C_{max}^{o_{Max}} -C_{max}^{o_{min}}$\;
       $Width \leftarrow 1 + Range * \alpha_i$\;
       Construire RCL l'ensemble des opérations non assignées $o \in \sigma$ telle que $C_{max}^{o_{min}} \leq C_{max}^{o} \leq C_{max}^{o_{min}} + Width$\;
