@@ -103,98 +103,75 @@ dans le cadre d'un problème de job shop : le \emph{Flexible Job Shop Scheduling
 Cette extension du problème du job shop permet de prendre en compte deux aspects importants de la production :
 \begin{enumerate}
 \item la flexibilité des machines pour effectuer des opérations, c'est-à-dire qu'une opération n'aura pas une machine
-prédéfinie à l'avance pour son exécution, on aura en effet le choix entre plusieurs machines avec différents temps
-d'exécution associés. Cette diversité des temps d'exécution est en général lié au temps de préparation d'une
-pour le traitement d'une opération donnée mais surtout à la performance et à l'adéquation de la machine
-pour exécuter une telle tâche
-\item la prise en compte de tâches de maintenance à effectuer dans des fenêtres de temps données (non fixité). En effet
+prédéfinie à l'avance pour son exécution. On aura en effet le choix entre plusieurs machines avec différents temps
+d'exécution associés. Cette diversité des temps d'exécution est en général lié à la performance et à l'adéquation de chaque machine
+pour exécuter une tâche
+\item la prise en compte de tâches de maintenance à effectuer dans des fenêtres de temps données (indisponibilité non fixe). En effet
 les machines ont besoin d'être entretenues afin d'éviter (si possible) des pannes ou des défaillances. Durant une
-tâche de maintenance, une machine est indisponible est ne peut pas traiter d'opération, ce qui impacte fortement
-les performances d'une affectation d'opérations et d'ordonnancement de celles-ci.
+tâche de maintenance, une machine et indisponible est ne peut pas traiter d'opération, ce qui impacte fortement
+les performances d'un choix d'affectation d'opérations et d'ordonnancement de celles-ci.
 \end{enumerate}
 Avec la prise en compte de la flexibilité des machines, le FJSSP-nfa permet de travailler sur de nouveaux
-critères portant de la charge de travail, c'est à dire sur le temps d'utilisation de chaque machine qui
-n'est plus fixé comme dans le cas d'un CJSSP. Ainsi le FJSSP-nfa est un problème multi-critère portant
+critères portant sur la charge de travail, c'est à dire sur le temps d'utilisation de chaque machine qui
+n'est plus fixé comme dans le cas d'un job shop classique (CJSSP). Ainsi le FJSSP-nfa est un problème multi-critère portant
 sur la charge de travail totale et maximal des machines et sur le makespan de l'ordonnancement (temps
 de complétion maximale).
-Enfin le problème de job shop classique étant déjà NP-difficile, le FJSSP-nfa l'est aussi.
+
+Le problème de job shop classique étant déjà NP-difficile, le FJSSP-nfa l'est aussi.
 De plus, avec les difficultés rajoutées par la flexibilité des machines et la maintenance,
-une approche de résolution par méthode exacte est semble presque inenvisageable\footnote{d'après \cite{GA1},
+une approche de résolution par méthode exacte est presque inenvisageable\footnote{d'après \cite{GA1},
 les méthodes exactes par graphes disjonctifs sont actuellement limités à 20 jobs et 10 machines pour
-le FJSSP (sans maintenance)}. Ainsi ce sont les heuristiques comme l'algorithme GRASP (\cite{GRASP}) 
-et les méta-heuristiques comme les algorithmes génétiques(\cite{GA1},\cite{GA2}) qui ont rencontré le plus de succès.
+le FJSSP (sans maintenance)}. Ainsi ce sont des heuristiques comme l'algorithme de recherche locale GRASP (\cite{GRASP}) 
+et des méta-heuristiques comme les algorithmes génétiques(\cite{GA1},\cite{GA2}) qui rencontrent le plus de succès pour ce type de problème car elle permettent d'avoir de bons résultats multi-critères  en un temps raisonnable.
 
 \end{abstract}
 
-\section{Introduction}
+\section{Définitions : FJSSP-nfa et GRASP}
 
-Avec la notation de Graham, ce problème peut s'écrire sous la forme : 
-\[J_{m}|flexibility,nfa|W_{tot},W_{max},C_{max}\].
-On ainsi un ensemble de job i
-Une solution à ce problème doit indiquer les affectations de chaque opération à une machine ainsi
-que les les temps de complétions (ou de début) de chaque opération
-et de chaque tâche de maintenance (et de chaque job et chaque machine).
-En eff
-%Il s'agit d'une extension FJSSP avec des contraintes de tâches de maintenance à exécuter sur une fenêtre de temps
-%pour chaque machine.
-%Le FJSSP est lui-même une extension du problème de job shop classique (CJSSP) où les opérations des jobs peuvent être
-%exécutés, de manière non-préemptive et ordonnée, sur différentes machines. Ainsi, pour transformer un FJSSP en un
-%CJSSP, il faut affecter une machine à chaque opération \footnote{il s'agit d'un  
-%\emph{Operation Machine Affectation Problem (OMAP)}} de telle sorte à minimiser
-%la charge (temps d'occupation par les opérations et les tâches de maintenances) totale de chaque machine $W_{tot}$
-%et la charge maximale $W_{tot}$.
-%Ce problème d'affectation peut-être résolu de 2 manières avec le problème d'ordonnancement :
-%\begin{enumerate}
-%\item de manière hiérarchique en résolvant d'abord le problème d'affectation
-%\item de manière conjointe avec une approche intégrée
-%\end{enumerate}
-%  ou de manière h
-%
-%\begin{algorithm}[H]
-%    \caption{Algorithme PPI : Plus proche insertion}
-%    
-%    \tcp{Déclaration et Initialisation}
-%     $C_{min}$ : Coût minimal d'insertion
-%     
-%     $D_{min} \leftarrow +\infty$ : Distance minimale au circuit
-%     
-%     $\forall i=1...n,D_{tour}^{i} \leftarrow +\infty$, : Distances des nœuds encore à insérer au circuit
-%     
-%     $B$ : Nœud sélectionné à insérer (B pour "Best")
-%     
-%     $A \leftarrow 0$ : Nœud d'insertion de coût minimal (A avant B, ou B voisin de A)
-%     
-%    \tcp{Recherche du ième point du point à ajouter au chemin actuel}
-%    \For{$i$ \From $1$ \KwTo $N$}{
-%    
-%        \tcp{Réinitialiser le coût et la distance minimales}
-%        $C_{min} \leftarrow +\infty$
-%        
-%        $D_{min} \leftarrow +\infty$
-%        
-%        \tcp{Recherche parmi les nœuds qui ne sont pas encore dans le circuit}
-%        \For{$j$ \From $1$ \KwTo $N$}{
-%            \If{$j \notin circuit$}{
-%            Recalculer la distance $D_{tour}^{j}$ du nœud j au circuit en prenant en compte le (i-1)-ème nœud ajouté (nœud $i-1$ du circuit)
-%            
-%            Mise à jour de la distance minimale : $D_{min} \leftarrow min(D(B,node(i-1)) ,D(j,node(i-1)))$
-%           
-%            
-%            Mise à jour du meilleur nœud à ajouter : $B \leftarrow arg1min(D(B,node(i-1)) ,D(j,node(i-1)))$  \footnote{node(i-1) est l'index du (i-1)-ème nœud ajouté au circuit et D(,) est la distance entre deux nœuds}
-%             }
-%            
-%	        \If{$j \in circuit$}{
-%	        Calculer le coût d'ajout $C_{j}$ de B après le nœud j  dans le circuit
-%	        
-%	        
-%	        Mise à jour du coût (minimal) de meilleure insertion : $C_{min} \leftarrow min(C_{A},C_{j})$
-%	        
-%	        Mise à jour du nœud (prédécesseur) de meilleure insertion : $A \leftarrow argmin(C_{A},C_{j})$
-%	        }
-%        }
-%        Ajouter le nœud B à la suite du nœud A dans le circuit.
-%    }
-%\end{algorithm}
+Avec la notation de Graham, le problème d'ordonnancement FJSSP-nfa peut s'écrire sous la forme : 
+\[J_{m}|flexibility,nfa|W_{tot},W_{max},C_{max}\]
+Plus précisément, on souhaite minimiser une combinaison linéaire de $W_{tot}$ (charge totale
+d'occupation des machines),$W_{max}$ (charge maximale
+d'occupation des machines) et $C_{max}$ :
+$W_1*W_{tot}+W_2*W_{max}+W_3*C_{max}$ avec $W_1+W_2+W_3=1$ et $W_1$,$W_2$,$W_3$ des paramètres
+donnés en fonction des préférences d'objectif.
+
+En reprenant les notations de l'article \cite{GRASP}, on a $n$ jobs d'incice $i$
+avec $n_{i}$ opérations d'indice $k$ pour chaque job $i$ (notées $O_{ik}$), $m$ machine d'indice $j$, $L_{j}$ tâches de maintenance d'indice $l$ pour chaque machine $j$ (notées $PM_{jl}$). Chaque opération
+peut être affectées sur un ensemble $A_{ik}$ de machines avec différentes durées $t_{ikj}$
+d'exécution. Les tâches de maintenance ont des durées $p_{jl}$ d'exécution et doivent se terminées
+sur des fenêtres de temps $[t^{E}_{jl},t^{L}_{jl}]$ ($E$ pour "Early" et $L$ pour "Late"). \\
+
+L'algorithme GRASP est un algorithme de recherche locale randomisée avec une approche hiérarchique
+pour résoudre le FJSSP-nfa, c'est-à-dire qu'il va d'abord résoudre le problème d'affectation
+des opérations $O_{ik}$ aux machines de $A_{ik}$ ($\forall i,k$) puis le problème d'ordonnancement
+des opérations $O_{ik}$ affectées et des tâches de maintenance  $PM_{jl}$ sur chaque machine\footnote{L'approche
+hiérarchique s'oppose à l'approche intrinsèque où les deux problèmes sont résolus conjointement, cette approche
+est plus difficile mais peut donner de meilleurs résultats notamment avec les algorithmes génétiques}.
+Comme le montre les algorithmes \ref{algo:routing} et \ref{algo:scheduling} (voir aussi \cite{GRASP}), GRASP va construire
+une solution en ajoutant itérativement les opérations \footnote{les tâches de maintenance sont ajoutées par des
+détections de conflit avec l'ordonnancement d'uen opération et lorsque toutes les opérations ont pu être ordonnancées}
+ (pour l'affectation et l'ordonnancement) qui sont choisies de manière
+aléatoire dans une liste RCL de candidats restreinte. 
+
+La RCL est un voisinage de l'opération qui fait augmenter le moins
+la valeur de la fonction objective ($W_{tot}$ pour l'algorithme 1 et $C_{max}$ pour l'algorithme 2). La RCL est triée par valeur croissante des augmentations de la valeur objective
+afin de pondérer la probabilité de choisir chaque candidat (opération à affecter) en fonction de son rang $r$
+avec la fonction $r \rightarrow 1/r$.
+
+La taille de la RCL est paramétrée par une valeur $\alpha \in [0,1]$ qui
+va permettre de fixer la valeur maximale d'augmentation de la fonction objective (pour être
+acceptée dans la liste) par $OFV_{min}+\alpha*(OFV_{max}-OFV_{min})$ avec $OFV_{min}$ et $OFV_{max}$
+les valeurs minimales et maximales (respectivement) de la fonction objective après l'ajout de la prochaine opération.
+
+Finalement, pour chaque itération principale de l'algorithme, on sélectionne aléatoirement (avec un générateur (pseudo-)aléatoire de loi uniforme)
+une valeur  $\alpha \in [0,1]$ qui sera utilisée pour construire une solution
+complète au problème de FJSSP-nfa. On obtient ainsi une ensemble de solutions
+où chacune indique les affectations $x_{ikj} \in \{0,1\}$ (ou $x_{ik} \in \{0,1...,j\}$ dans
+notre algorithme) et les temps de complétions $c_{ik}$ et $y_{jl}$ des opérations $O_{ik}$
+et des tâches de maintenances $PM_{jl}$ respectivement. On sélectionne enfin la solution
+qui minimise la fonction objective $W_1*W_{tot}+W_2*W_{max}+W_3*C_{max}$.
+
 \begin{algorithm}
   \caption{Assigner les opérations aux machines (\emph{routing})}
   \label{algo:routing}
@@ -208,15 +185,15 @@ En eff
     $s_i$ la solution à construire\;
     $s_i \leftarrow \emptyset$\;
     \While{$\sigma \neq \emptyset$}{
-      \tcp{Le processing time dépend de machine de traitement}
-      Chercher $o_M$ l'opération dont le processing time est le plus longue\;
-      Chercher $o_m$ l'opréation dont le processing time est le plus court\;
-      $Range \leftarrow p_{o_M} - p_{o_m}$\;
+      \tcp{Le processing time $t_o$ dépend de la machine de traitement et correspond à l'augmentation de $W_{tot}$ (de $s_i$) par l'affectation d'une opération}
+      Chercher $O_{Max}$ l'opération dont le processing time est le plus long\;
+      Chercher $O_{min}$ l'opréation dont le processing time est le plus court\;
+      $Range \leftarrow t_{O_{Max}} - t_{O_{min}}$\;
       $Width \leftarrow Range * \alpha_i$\;
-      Construire RCL l'ensemble des opérations non assignées $o \in \sigma$ telle que $p_{o_m} \leq p_o \leq p_{o_m} + Width$\;
+      Construire RCL l'ensemble des opérations non assignées $o \in \sigma$ telle que $t_{O_{min}} \leq t_o \leq t_{O_{min}} + Width$\;
       Ordonner RCL dans l'ordre croissant de processing time\;
-      Pondérer les éléments de RCL par la fonction linéaire $\frac{1}{r}$ où $r$ est l'ordre de l'élément\;
-      Choisir de manière aléatoire un élément $o^*$ de RCL en tenant compte des pois ci-dessus\;
+      Pondérer les éléments de RCL par la fonction $\frac{1}{r}$ où $r$ est l'ordre de l'élément\;
+      Choisir de manière aléatoire un élément $o^*$ de RCL en tenant compte des poids ci-dessus (la probabilité de choisir une opération o est $\frac{poids_o}{poids_{total}}$)\;
       $s_i \leftarrow s_i \cup o^*$\;
       $\sigma \leftarrow \sigma \backslash o^*$\;
     }
@@ -238,18 +215,18 @@ En eff
     $s_i \leftarrow \emptyset$\;
     \While{$\sigma \neq \emptyset$}{
       \tcp{Le processing time dépend de machine de traitement}
-      Chercher $o_M$ l'opération dont le processing time est le plus longue; et $o_m$ l'opréation dont le processing time est le plus court en tenant compte les maintenances qui doivent être situées au milieu des intervalles donnés $\left[t_{jl}^E, t_{jl}^L\right]$ \;
-      $Range \leftarrow p_{o_M} - p_{o_m}$\;
+      Chercher $o_{Max}$ l'opération qui augmente le plus $C_max$ (de $s_{i}$); et $o_{min}$ l'opération qui augmente le moins $C_max$ en tenant compte les maintenances dont les temps de complétion doivent se situer dans les intervalles donnés $\left[t_{jl}^E, t_{jl}^L\right]$ \;
+      $Range \leftarrow C_{max}^{o_{Max}} -C_{max}^{o_{min}}$\;
       $Width \leftarrow 1 + Range * \alpha_i$\;
-      Construire RCL l'ensemble des opérations non assignées $o \in \sigma$ telle que $p_{o_m} \leq p_o \leq p_{o_m} + Width$\;
-      Ordonner RCL dans l'ordre croissant de processing time\;
-      Pondérer les éléments de RCL par la fonction linéaire $\frac{1}{r}$ où $r$ est l'ordre de l'élément\;
-      Choisir de manière aléatoire un élément $o^*$ de RCL en tenant compte des pois ci-dessus\;
-      Ordonner $o^*$ en tenant compte la date de disponibilité la plus tôte et les maintenances\;
+      Construire RCL l'ensemble des opérations non assignées $o \in \sigma$ telle que $C_{max}^{o_{min}} \leq C_{max}^{o} \leq C_{max}^{o_{min}} + Width$\;
+      Ordonner RCL dans l'ordre croissant des $C_{max}$\;
+      Pondérer les éléments de RCL par la fonction $\frac{1}{r}$ où $r$ est l'ordre de l'élément\;
+      Choisir de manière aléatoire un élément $o^*$ de RCL en tenant compte des poids ci-dessus (la probabilité de choisir une opération o est $\frac{poids_o}{poids_{total}}$\;
+      Ordonner $o^*$ en tenant compte la date de disponibilité la plus tôt et les maintenances\;
       $\sigma \leftarrow \sigma \backslash o^*$\;
     }
-    Ordonner les maintenances au milieu des intervalles donnés $\left[t_{jl}^E, t_{jl}^L\right]$ sans collision avec les opérations scédulées\;
-    Calculer le makespan de $s_i$\;
+    Ordonner les maintenances sans collision à la suite opérations ordonnancées\;
+    Calculer le makespan ($C_{max}$) de $s_i$\;
   }
 \end{algorithm}
 
@@ -274,9 +251,9 @@ Nous réalisons $1000$ solutions (itérations) séquentiellement parmi lesquelle
     \hline
     $W_t$ & 103 & 103 \\
     $W_{max}$ & 16 & 15 \\
-    $C_{max}$ & 18 & 13 \\
-    $F(0.5;0.3;0.2)$ & 59.9 & 60.1 \\
-    $F(0.5;0.2;0.3)$ & 60.1 & 60.4 \\
+    $C_{max}$ & 18 & 18 \\
+    $F(0.5;0.3;0.2)$ & 59.9 & 59.9 \\
+    $F(0.5;0.2;0.3)$ & 60.1 & 60.1 \\
     \hline
   \end{tabular}
   \caption{Résultat pour problème $8 \times 8$}
@@ -290,7 +267,7 @@ Nous réalisons $1000$ solutions (itérations) séquentiellement parmi lesquelle
     \hline
     $W_t$ & 60 & 60 \\
     $W_{max}$ & 7 & 8 \\
-    $C_{max}$ & 9 & 11 \\
+    $C_{max}$ & 9 & 12 \\
     $F(0.5;0.3;0.2)$ & 33.9 & 35.4 \\
     $F(0.5;0.2;0.3)$ & 34.1 & 35.6 \\
     \hline
@@ -306,7 +283,7 @@ Nous réalisons $1000$ solutions (itérations) séquentiellement parmi lesquelle
     \hline
     $W_t$ & 107 & 98 \\
     $W_{max}$ & 13 & 14 \\
-    $C_{max}$ & 16 & 20 \\
+    $C_{max}$ & 16 & 19 \\
     $F(0.5;0.3;0.2)$ & 60.3 & 57.2 \\
     $F(0.5;0.2;0.3)$ & 60.9 & 57.8 \\
     \hline
@@ -322,9 +299,9 @@ Nous réalisons $1000$ solutions (itérations) séquentiellement parmi lesquelle
     \hline
     $W_t$ & 40 & 40 \\
     $W_{max}$ & 9 & 9 \\
-    $C_{max}$ & 16 & 13 \\
-    $F(0.5;0.3;0.2)$ & 25.9 & 26 \\
-    $F(0.5;0.2;0.3)$ & 26.6 & 26.5 \\
+    $C_{max}$ & 16 & 12 \\
+    $F(0.5;0.3;0.2)$ & 25.9 & 25.6 \\
+    $F(0.5;0.2;0.3)$ & 26.6 & 25.9 \\
     \hline
   \end{tabular}
   \caption{Résultat pour problème $4 \times 5$}
@@ -354,16 +331,10 @@ Les ordonnancements finaux pour chaque problème exemplaire sont inclus dans l'a
 
 \section{Annexes}
 
-\subsection{Visualisation de tournées (plots.m)}
+\subsection{Visualisation de tournées (plotJob.m)}
 \lstinputlisting[language=Matlab]{src/plotJob.m}
 
-\subsection{Automatisation de traçage des exemplaires (tests.m)}
-\lstinputlisting[language=Matlab]{src/tests.m}
-
-\subsection{Visualisation de statistiques (stats.R)}
-%\lstinputlisting[language=R]{stats.R}
-
-\subsection{Visualisation des ordonnacements}
+\subsection{Visualisation des ordonnancements}
 \label{annexe:visual_ordo}
 \begin{figure}
   \centering
