@@ -329,52 +329,71 @@ D'autre part, au niveau de temps d'exécution, qui joue un rôle important de ch
 
 Les ordonnancements finaux pour chaque problème exemplaire sont inclus dans l'annexe \eqref{annexe:visual_ordo}.
 
+\subsection{Analyse supplémentaire : frontières de dominance de Pareto}
+
+Afin de compléter l'analyse donnée par l'article, nous avons décidé de regarder
+les frontières de dominance de Pareto sur 5 niveaux (le niveau i dominant le niveau i+1)
+qui sont disponibles en annexes \ref{annexe:visual_pareto}.
+Nous avons observé que, tout en ayant 1000 solutions, les premières frontières sont composées de très peu de
+vecteurs de solutions (composé des trois valeurs objectives)
+ avec en général seulement 2 pour la première frontière et quelques dizaines au total pour les
+5 premières. De plus les solutions sont assez bien distribuées dans l'espace et on a pas trop de vecteurs objectifs (environ 2 ou 3 au maximum)
+identiques.
+
+On remarque que les objectifs à minimiser sont souvent positivement corrélés, c'est-à-dire que la diminution de l'un implique souvent la diminution d'au moins l'un des autres. Cela semble logique puisque moins de  charge de travail permettra souvent aux machines de terminer plus tôt (makespan diminué) et terminer plus tôt nécessite souvent d'avoir moins de charge.
+Néanmoins l'ajout d'une recherche locale randomisée permet de découvrir des solutions souvent meilleurs et peu évidentes car elles peuvent aller à l'encontre de cette corrélation positive. 
+Ainsi, l'algorithme GRASP semble être une approche adaptée pour résoudre le FJSSP-nfa en multi-objectifs.
+
+
 \section{Annexes}
 
 \subsection{Visualisation de tournées (plotJob.m)}
 \lstinputlisting[language=Matlab]{src/plotJob.m}
+
+\subsection{Visualisation de frontières de dominance de Pareto (plotFront.m)}
+\lstinputlisting[language=Matlab]{src/plotFront.m}
 
 \subsection{Visualisation des ordonnancements}
 \label{annexe:visual_ordo}
 \begin{figure}
   \centering
   \includegraphics[width=0.8\textwidth]{img/results8x8_Wtot.png}
-  \caption{$8 \times 8$ $W_{t}$ : $(W_t, W_{max}, C_{max}) = (40; 17; 17)$}
+  \caption{$8 \times 8$ $W_{t}$ : $(W_t, W_{max}, C_{max}) = (103; 16; 19)$}
 \end{figure}
 \begin{figure}
   \centering
   \includegraphics[width=0.8\textwidth]{img/results8x8_Wmax.png}
-  \caption{$8 \times 8$ $W_{max}$ : $(W_t, W_{max}, C_{max}) = (41; 9; 18)$}
+  \caption{$8 \times 8$ $W_{max}$ : $(W_t, W_{max}, C_{max}) = (108; 15; 24)$}
 \end{figure}
 \begin{figure}
   \centering
   \includegraphics[width=0.8\textwidth]{img/results8x8_Cmax.png}
-  \caption{$8 \times 8$ $C_{max}$ : $(W_t, W_{max}, C_{max}) = (105; 16; 19)$}
+  \caption{$8 \times 8$ $C_{max}$ : $(W_t, W_{max}, C_{max}) = (103; 16; 18)$}
 \end{figure}
 \begin{figure}
   \centering
   \includegraphics[width=0.8\textwidth]{img/results8x8_F050302.png}
-  \caption{$8 \times 8$ $F(0.5;0.3;0.2)$ : $(W_t, W_{max}, C_{max}) = (40; 10; 15)$}
+  \caption{$8 \times 8$ $F(0.5;0.3;0.2)$ : $(W_t, W_{max}, C_{max}) = (103; 16; 18)$}
 \end{figure}
 \begin{figure}
   \centering
   \includegraphics[width=0.8\textwidth]{img/results8x8_F050203.png}
-  \caption{$8 \times 8$ $F(0.5;0.2;0.3)$ : $(W_t, W_{max}, C_{max}) = (40; 10; 15)$}
+  \caption{$8 \times 8$ $F(0.5;0.2;0.3)$ : $(W_t, W_{max}, C_{max}) = (103; 16; 18)$}
 \end{figure}
 \begin{figure}
   \centering
   \includegraphics[width=0.8\textwidth]{img/results10x10_Wtot.png}
-  \caption{$10 \times 10$ $W_{t}$ : $(W_t, W_{max}, C_{max}) = (60; 11; 16)$}
+  \caption{$10 \times 10$ $W_{t}$ : $(W_t, W_{max}, C_{max}) = (60; 11; 15)$}
 \end{figure}
 \begin{figure}
   \centering
   \includegraphics[width=0.8\textwidth]{img/results10x10_Wmax.png}
-  \caption{$10 \times 10$ $W_{max}$ : $(W_t, W_{max}, C_{max}) = (66; 8; 11)$}
+  \caption{$10 \times 10$ $W_{max}$ : $(W_t, W_{max}, C_{max}) = (66; 8; 13)$}
 \end{figure}
 \begin{figure}
   \centering
   \includegraphics[width=0.8\textwidth]{img/results10x10_Cmax.png}
-  \caption{$10 \times 10$ $C_{max}$ : $(W_t, W_{max}, C_{max}) = (66; 8; 11)$}
+  \caption{$10 \times 10$ $C_{max}$ : $(W_t, W_{max}, C_{max}) = (62; 12; 12)$}
 \end{figure}
 \begin{figure}
   \centering
@@ -399,7 +418,7 @@ Les ordonnancements finaux pour chaque problème exemplaire sont inclus dans l'a
 \begin{figure}
   \centering
   \includegraphics[width=0.8\textwidth]{img/results15x10_Cmax.png}
-  \caption{$15 \times 10$ $C_{max}$ : $(W_t, W_{max}, C_{max}) = (98; 17; 20)$}
+  \caption{$15 \times 10$ $C_{max}$ : $(W_t, W_{max}, C_{max}) = (106; 15; 19)$}
 \end{figure}
 \begin{figure}
   \centering
@@ -424,18 +443,44 @@ Les ordonnancements finaux pour chaque problème exemplaire sont inclus dans l'a
 \begin{figure}
   \centering
   \includegraphics[width=0.8\textwidth]{img/results4x5_Cmax.png}
-  \caption{$4 \times 5$ $C_{max}$ : $(W_t, W_{max}, C_{max}) = (41; 12; 13)$}
+  \caption{$4 \times 5$ $C_{max}$ : $(W_t, W_{max}, C_{max}) = (41; 12; 12)$}
 \end{figure}
 \begin{figure}
   \centering
   \includegraphics[width=0.8\textwidth]{img/results4x5_F050302.png}
-  \caption{$4 \times 5$ $F(0.5;0.3;0.2)$ : $(W_t, W_{max}, C_{max}) = (40; 10; 15)$}
+  \caption{$4 \times 5$ $F(0.5;0.3;0.2)$ : $(W_t, W_{max}, C_{max}) = (40; 10; 13)$}
 \end{figure}
 \begin{figure}
   \centering
   \includegraphics[width=0.8\textwidth]{img/results4x5_F050203.png}
-  \caption{$4 \times 5$ $F(0.5;0.2;0.3)$ : $(W_t, W_{max}, C_{max}) = (40; 10; 15)$}
+  \caption{$4 \times 5$ $F(0.5;0.2;0.3)$ : $(W_t, W_{max}, C_{max}) = (40; 10; 13)$}
 \end{figure}
+
+\clearpage
+\subsection{Visualisation des frontières de dominance de Pareto}
+\label{annexe:visual_pareto}
+
+\begin{figure}[!h]
+  \centering
+  \includegraphics[width=0.8\textwidth]{img/results8x8_Pareto.png}
+  \caption{5 Frontières de dominance de Pareto pour le problème 8x8}
+\end{figure}
+\begin{figure}
+  \centering
+  \includegraphics[width=0.8\textwidth]{img/results10x10_Pareto.png}
+  \caption{5 Frontières de dominance de Pareto pour le problème 10x10}
+\end{figure}
+\begin{figure}
+  \centering
+  \includegraphics[width=0.8\textwidth]{img/results15x10_Pareto.png}
+  \caption{5 Frontières de dominance de Pareto pour le problème 15x10}
+\end{figure}
+\begin{figure}
+  \centering
+  \includegraphics[width=0.8\textwidth]{img/results4x5_Pareto.png}
+  \caption{5 Frontières de dominance de Pareto pour le problème 4x5}
+\end{figure}
+
 \clearpage
 
 \begin{thebibliography}{1}

@@ -18,6 +18,7 @@ using namespace std::chrono;
 #define M_MAX 100 //MAX number of machines
 #define L_MAX 10 //MAX number of maintenance tasks per machine
 #define NB_ITERS 1000
+#define NB_FRONT 5
 #define SEED 2019
 
 struct Parameters {
@@ -60,7 +61,7 @@ struct candidate {
 static MTRand rand_gen(SEED);
 static Parameters params;
 static Solution solution[NB_ITERS]; //indexed by t
-static bool parentoFront[NB_ITERS]; // FALSE = dominated
+static int paretoFront[NB_ITERS]; // 0 = dominated by all fronts
 
 //Give  the current time of the clock
 high_resolution_clock::time_point now() {
@@ -524,25 +525,26 @@ void writeOutParetoFront(string output) {
         exit(1);
     }
     // Brutal check indomination
-    for (int i = 0; i < NB_ITERS; i++) {
-        parentoFront[i] = true;
-        for (int j = 0; j < NB_ITERS; j++) {
-            if (j == i) continue;
-            if (idem(solution[j], solution[i])
-                && parentoFront[j]) {
-                parentoFront[i] = false;
-                break;
+    for (int front = 1; front <= NB_FRONT; front++) {
+        for (int i = 0; i < NB_ITERS; i++) {
+            if(paretoFront[i] == 0) {
+                paretoFront[i] = front;
+                for (int j = 0; j < NB_ITERS; j++) {
+                    if(paretoFront[j] == 0 || paretoFront[j] == front) {
+                        if (j == i) continue;
+                        if (dominate(solution[j], solution[i])) {
+                            // If solution[j] dominates solution[i]
+                            paretoFront[i] = 0;
+                            break;
+                        }
+                    }
+                }
+                if (paretoFront[i] > 0) {
+                    // Write
+                    f << front << " " << solution[i].W_tot << " " << solution[i].W_max << " "
+                        << solution[i].C_max << "\n";
+                }
             }
-            if (dominate(solution[j], solution[i])) {
-                // If solution[j] dominates solution[i]
-                parentoFront[i] = false;
-                break;
-            }
-        }
-        if (parentoFront[i]) {
-            // Write
-            f << solution[i].W_tot << " " << solution[i].W_max << " "
-                << solution[i].C_max << "\n";
         }
     }
 }
